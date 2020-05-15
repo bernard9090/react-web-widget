@@ -1,0 +1,100 @@
+.app{
+    position: fixed;
+    right: 32px;
+    bottom: 32px;
+    height: 60px;
+    width: 60px;
+    border-radius: 100%;
+    background-color: orangered;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: "Noto Sans Carian", sans-serif;
+}
+
+.container{
+    position: fixed;
+    right: 32px;
+    bottom: 32px;
+    height: calc(26rem + 70px);
+    width: 20rem;
+}
+
+.enrichment-container{
+    position: fixed;
+    right: 32px;
+    bottom: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 26rem;
+    background-color: #ffffff;
+    width: 20rem;
+
+    border: 1px solid #eeeeee;
+    box-sizing: border-box;
+    box-shadow: 0 0 10px rgba(155, 155, 155, 0.25);
+    border-radius: 16px;
+}
+
+
+.en_info{
+
+    height: 79px;
+    top: 45px;
+
+    font-family: HK Grotesk, sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 31px;
+    text-align: center;
+    margin: 1.2em;
+    color: #151515;
+
+}
+
+.en_instruction{
+    width: 304px;
+    height: 18px;
+
+    font-family: HK Grotesk, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 12px;
+    line-height: 18px;
+    /* identical to box height */
+
+    text-align: center;
+
+    color: #363636;
+
+}
+
+.en_input{
+    width: 280px;
+    height: 47px;
+    left: 133px;
+    margin-top: 0.1em;
+    background: #F8F8F8;
+    border: 1px solid #E3E3E3;
+    box-sizing: border-box;
+    border-radius: 10px;
+    outline: none;
+    padding: 0 1em;
+}
+
+.en_sub_btn{
+    width: 280px;
+    height: 47px;
+    left: 133px;
+    margin-top: 3em;
+    outline: none;
+    color: white;
+    background: #2CAB00;
+    border: 1px solid #E3E3E3;
+    box-sizing: border-box;
+    border-radius: 10px;
+}
