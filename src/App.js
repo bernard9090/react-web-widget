@@ -1,7 +1,6 @@
 import React from 'react';
 import "./App.css"
-import {AnimateOnChange} from 'react-animation'
-
+import {TimelineLite} from "gsap";
 
 class App extends React.Component {
 
@@ -10,7 +9,10 @@ class App extends React.Component {
 
         this.state = {
             show:false
-        }
+        };
+
+        this.widget = null;
+
     }
 
     toggle = () =>{
@@ -22,17 +24,13 @@ class App extends React.Component {
 
     render() {
         return(
-            <div>
-                <AnimateOnChange
-                    animationIn="bounceIn"
-                    animationOut="bounceOut"
+            <div className={"widget__container"}>
 
-                >
                 {
                     this.state.show &&
 
 
-                        <div className={"enrichment-container"}>
+                        <div ref={(div) => this.widget = div} className={"enrichment-container"}>
                             <p className={"en_info"}>
                                 Get daily news from BBCNEWS direct to your mobile! @GHS1/day*
                             </p>
@@ -45,7 +43,7 @@ class App extends React.Component {
                         </div>
 
                 }
-                </AnimateOnChange>
+
 
                 <div onClick={()=>this.toggle()} className={"app"}>
                     A.B

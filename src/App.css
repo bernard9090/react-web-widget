@@ -98,3 +98,10 @@
     box-sizing: border-box;
     border-radius: 10px;
 }
+
+.app{
+    position: absolute;
+    right: 5rem;
+    bottom: 3rem;
+
+}
