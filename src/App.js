@@ -24,13 +24,13 @@ class App extends React.Component {
 
     render() {
         return(
-            <div className={"widget__container"}>
+            <div>
 
                 {
                     this.state.show &&
 
 
-                        <div ref={(div) => this.widget = div} className={"enrichment-container"}>
+                        <div ref={(div) => this.widget = div} className={"enrichment_container"}>
                             <p className={"en_info"}>
                                 Get daily news from BBCNEWS direct to your mobile! @GHS1/day*
                             </p>
