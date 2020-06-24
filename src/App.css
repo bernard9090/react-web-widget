@@ -13,13 +13,7 @@
     font-family: "Noto Sans Carian", sans-serif;
 }
 
-.container{
-    position: fixed;
-    right: 32px;
-    bottom: 32px;
-    height: calc(26rem + 70px);
-    width: 20rem;
-}
+
 
 .enrichment-container{
     position: fixed;
