@@ -1,7 +1,7 @@
 .app{
     position: fixed;
-    right: 32px;
-    bottom: 32px;
+    right: 5rem;
+    bottom: 3rem;
     height: 60px;
     width: 60px;
     border-radius: 100%;
@@ -99,9 +99,8 @@
     border-radius: 10px;
 }
 
-.app{
-    position: absolute;
-    right: 5rem;
-    bottom: 3rem;
+.widget__container{
+    position: fixed;
+    z-index: 9999;
 
 }
