@@ -171,7 +171,7 @@ class App extends React.Component {
                             this.tl.reverse();
                             this.container.current.style.visibility = "hidden";
                             this.widget.current.style.visibility = "hidden";
-                            window.location =`https://ppreports.vuclip.com/tool/test/redirect.php?asr=${this.state.asr}`
+                            window.location =`https://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${this.state.asr}`
                         }}/>
                     </div>
 
@@ -225,7 +225,7 @@ class App extends React.Component {
                                                     this.container.current.style.visibility = "hidden";
                                                     this.widget.current.style.visibility = "hidden";
 
-                                                    window.location =`https://ppreports.vuclip.com/tool/test/redirect.php?asr=${asr}`
+                                                    window.location =`https://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${asr}`
                                                     // swal({
                                                     //     title: "Subscription Successful",
                                                     //     text: `You have successfully subscribed to ${selectedService.service} @ ${selectedService.tariff}`,
@@ -324,7 +324,7 @@ class App extends React.Component {
 
                                                             if(code === 200){
                                                             //    do the redirect
-                                                                window.location =`https://ppreports.vuclip.com/tool/test/redirect.php?asr=${asr}`
+                                                                window.location =`https://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${asr}`
                                                             }
 
                                                             if(code !== 200){
@@ -375,7 +375,7 @@ class App extends React.Component {
                                         this.tl.reverse();
                                         this.container.current.style.visibility = "hidden";
                                         this.widget.current.style.visibility = "hidden";
-                                        window.location =`https://ppreports.vuclip.com/tool/test/redirect.php?asr=${this.state.asr}`
+                                        window.location =`https://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${this.state.asr}`
 
                                     }} className="wd__btn-service-item-btn">DONE</button>
                                 </div>
