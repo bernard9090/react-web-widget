@@ -70,11 +70,11 @@ class App extends React.Component {
                         });
 
                         // undefined keyword means multi service
-                        // if(serviceKeyword !== undefined){
-                        //     retrieveServices(providerId).then(({data})=>{
-                        //         console.log("retrieve", data);
-                        //     })
-                        // }
+                        if(serviceKeyword !== undefined){
+                            retrieveServices(providerId).then(({data})=>{
+                                console.log("retrieve", data);
+                            })
+                        }
                     }
 
 
@@ -84,20 +84,21 @@ class App extends React.Component {
             }
         }
 
-        headerEnriched().then(({data})=> {
+        headerEnriched()
+            .then((data)=> {
             console.log("header enriched", data);
-            const {code, result, message} = data;
-            if(result !== ""){
-                this.setState({msisdn: result,headerEnriched: true});
-                const {providerId, keyword} = this.state;
-
-                // fetchUserServices(providerId, keyword, result).then(({data})=>{
-                //     console.log("subscriptions", data)
-                // })
-
-            }else{
-                this.setState({headerEnriched: false})
-            }
+            // const { result, message} = data;
+            // if(result !== ""){
+            //     this.setState({msisdn: result,headerEnriched: true});
+            //     const {providerId, keyword} = this.state;
+            //
+            //     // fetchUserServices(providerId, keyword, result).then(({data})=>{
+            //     //     console.log("subscriptions", data)
+            //     // })
+            //
+            // }else{
+            //     this.setState({headerEnriched: false})
+            // }
         })
     }
 
@@ -180,7 +181,7 @@ class App extends React.Component {
                     {
                         keyword !== null ?
                             <p ref={this.testFadeIn} className={"en_info"}>
-                                Get {selectedService.service} content directly to your phone @ Ghs {selectedService.tariff} / day
+                                Get {selectedService.service} content directly to your phone {selectedService.tariff ? `@ Ghs ${selectedService.tariff} / day` : "."}
                             </p>:
                             <p ref={this.testFadeIn} className={"en_info"}>
                             Get Content directly to your mobile!
