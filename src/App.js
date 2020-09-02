@@ -85,27 +85,88 @@ class App extends React.Component {
         }
 
         headerEnriched()
-            .then((data)=> {
-            console.log("header enriched", data);
-            // const { result, message} = data;
-            // if(result !== ""){
-            //     this.setState({msisdn: result,headerEnriched: true});
-            //     const {providerId, keyword} = this.state;
-            //
-            //     // fetchUserServices(providerId, keyword, result).then(({data})=>{
-            //     //     console.log("subscriptions", data)
-            //     // })
-            //
-            // }else{
-            //     this.setState({headerEnriched: false})
-            // }
-        })
+            .then(({data})=> {
+                const {providerId, keyword} = this.state;
+                console.log("header enriched:", data, providerId, keyword);
+                if(data !== "none"){
+                    let msisdn = data;
+                    this.setState({msisdn: data ,headerEnriched: true});
+                    const {providerId, keyword} = this.state;
+
+                    if(keyword !== null){
+
+                        subscribeToService({service: keyword}, msisdn, providerId).then(({data})=>{
+                            // this.setState({subscribeLoading:false});
+                            this.setState({loading:true});
+                            console.log(data);
+
+                            const {result, message, code} = data;
+                            const {asr} = result;
+                            this.setState({asr:asr});
+                            if(code === 200){
+                                this.setState({loading:false});
+                                this.tl.reverse();
+                                this.container.current.style.visibility = "hidden";
+                                this.widget.current.style.visibility = "hidden";
+
+                                window.location =`http://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${encodeURIComponent(asr)}`;
+                                swal({
+                                    title: "Subscription Successful",
+                                    text: `You have successfully subscribed to ${selectedService.service} @ ${selectedService.tariff}`,
+                                    icon: "success",
+                                });
+                            }else{
+                                swal({
+                                    title: "Subscription Unsuccessful",
+                                    text: message,
+                                    icon: "error",
+                                });
+                                this.setState({loading:false});
+                            }
+                        }).catch(err => {
+                            // this.setState({subscribeLoading:false});
+                            this.setState({loading:false});
+                            swal({
+                                title: "Subscription Unsuccessful",
+                                text: "You clicked the button!",
+                                icon: "error",
+                            });
+                        });
+                    }else{
+                        retrieveServices(providerId, msisdn).then(({data}) => {
+                            console.log("retrieve service", data);
+                            const {code, result, message} = data;
+                            const {msisdn, serviceData, asr} = result;
+
+                            if(code === 200){
+                                this.setState({loading:false, msisdn:msisdn, data:serviceData, asr: asr});
+                            }else {
+                                // swal({
+                                //     title: "Error fetching services",
+                                //     text: "You clicked the button!",
+                                //     icon: "error",
+                                // });
+                                this.setState({loading:false, msisdn:msisdn});
+
+                            }
+
+
+
+                        }).catch(err => {
+                            this.setState({loading:false});
+                        })
+                    }
+                }else{
+                    this.setState({headerEnriched: false});
+                    console.log("no header enrichment")
+                }
+            })
     }
 
 
     componentDidMount() {
 
-
+        // console.log("encoded url",encodeURIComponent("+VcI2SW9n68A9/jVTsmh7A=="));
         this._isMounted = true;
         // this.showModal()
 
@@ -172,7 +233,7 @@ class App extends React.Component {
                             this.tl.reverse();
                             this.container.current.style.visibility = "hidden";
                             this.widget.current.style.visibility = "hidden";
-                            window.location =`https://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${this.state.asr}`
+                            window.location =`http://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${encodeURIComponent(this.state.asr)}`
                         }}/>
                     </div>
 
@@ -226,7 +287,7 @@ class App extends React.Component {
                                                     this.container.current.style.visibility = "hidden";
                                                     this.widget.current.style.visibility = "hidden";
 
-                                                    window.location =`https://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${asr}`
+                                                    window.location =`http://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${encodeURIComponent(asr)}`
                                                     // swal({
                                                     //     title: "Subscription Successful",
                                                     //     text: `You have successfully subscribed to ${selectedService.service} @ ${selectedService.tariff}`,
@@ -325,7 +386,7 @@ class App extends React.Component {
 
                                                             if(code === 200){
                                                             //    do the redirect
-                                                                window.location =`https://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${asr}`
+                                                                window.location =`http://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${encodeURIComponent(asr)}`
                                                             }
 
                                                             if(code !== 200){
@@ -376,7 +437,7 @@ class App extends React.Component {
                                         this.tl.reverse();
                                         this.container.current.style.visibility = "hidden";
                                         this.widget.current.style.visibility = "hidden";
-                                        window.location =`https://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${this.state.asr}`
+                                        window.location =`http://videos-vgh.com/api/ghana/vodafone/cgresponse.php?asr=${encodeURIComponent(this.state.asr)}`
 
                                     }} className="wd__btn-service-item-btn">DONE</button>
                                 </div>

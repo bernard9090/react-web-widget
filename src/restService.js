@@ -28,19 +28,29 @@ export const headerEnriched = () => {
 
 
 
-    // return new Promise((async (resolve, reject) => {
+    // return new Promise(((resolve, reject) => {
     //
-    //     const data = await fetch("http://sandbox.rancardmobility.com/api/v1/subscriber/widget/headerEnrichment", {
+    //     var myHeaders = new Headers();
+    //     myHeaders.append("rancard", " 87bcb331c06328fe911cc795");
+    //     myHeaders.append("Cookie", "JSESSIONID=1ADD9D73846A7C2300DF7A729427495F");
+    //     myHeaders.append("Access-Control-Allow-Origin", "*");
+    //
+    //     var requestOptions = {
+    //         method: 'GET',
+    //         headers: myHeaders,
     //         mode:"no-cors"
-    //     }).then();
+    //     };
     //
-    //     resolve({})
+    //     fetch("https://sandbox.rancardmobility.com/api/v1/subscriber/widget/headerEnrichment-vodafone", requestOptions)
+    //         .then(response => response.text())
+    //         .then(result => console.log(result))
+    //         .catch(error => console.log('error', error));
     //
     //
     // }))
-    var config = {
+    const config = {
         method: 'get',
-        url: 'https://sandbox.rancardmobility.com/api/v1/subscriber/widget/headerEnrichment',
+        url: 'http://sandbox.rancardmobility.com/he/decrypt',
         headers: {
             'Access-Control-Allow-Origin': '*',
         }
