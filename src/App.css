@@ -1,5 +1,6 @@
 
 
+
 .sdp_widget__container{
     position: absolute;
     background-color: rgba(69, 69, 69, 0.89);
@@ -12,15 +13,26 @@
     align-items: center;
     justify-content: center;
     font-family: Monospaced, sans-serif;
+    z-index: 9999;
+    -webkit-transition: all 250ms ease-in-out;
+    -moz-transition: all 250ms ease-in-out;
+    -ms-transition: all 250ms ease-in-out;
+    -o-transition: all 250ms ease-in-out;
+    transition: all 250ms ease-in-out;
 }
 
 
 .enrichment_container{
-    width: 400px;
     height: fit-content;
     padding: 2rem;
-    border-radius: 1rem;
-    background-color: white;
+    position: relative;
+    width: 571px;
+    background: #FFFFFF;
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25), 0 0 10px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
 }
 
@@ -29,6 +41,18 @@
     font-size: 14px;
 }
 
+.wd__input-label-container{
+    width: 100%;
+}
+
+.services_container{
+
+}
+
+
+.wd__input-label-container{
+    width: 70%;
+}
 
 .wd__service-item-container{
     display: flex;
@@ -51,16 +75,18 @@
 }
 
 .wd__btn-subscribe{
-    background: #2CAB00;
-    box-sizing: border-box;
-    border-radius: 4px;
-    color: white;
+
     height: 50px;
     /*outline: #2fc700;*/
     width: 100%;
     transition: all 150ms linear;
-    border: 3px solid white;
     font-size: 18px;
+    background: #181818;
+    border: 1px solid #E3E3E3;
+    box-sizing: border-box;
+    border-radius: 10px;
+    color: #fff;
+    margin: 1em 0;
 
 }
 
@@ -132,3 +158,196 @@
     color: white;
 
 }
+
+
+
+/* PIN PAGE Styling*/
+
+.pin-wrapper{
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.btn-confirm{
+    width: 304px;
+    height: 67px;
+    left: 133px;
+    top: 314px;
+
+    background: #181818;
+    border: 1px solid #E3E3E3;
+    box-sizing: border-box;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 18px;
+    margin: 1em;
+}
+
+
+.btn-confirm:disabled{
+    opacity: 0.4;
+}
+
+.pin-input-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.rancard_image{
+    /*background-image: url("./assets/imgs/rancardlogo-registered 1.png");*/
+}
+
+
+@media screen and (max-width: 720px) {
+
+    .en_info{
+        font-size: 14px;
+        width: 80%;
+    }
+
+    .wd__msisdn-input{
+        font-size: 1.4rem;
+    }
+
+    .enrichment_container{
+        height: fit-content;
+        padding: 8px;
+        position: relative;
+        width: 80%;
+        background: #FFFFFF;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25), 0 0 10px rgba(0, 0, 0, 0.25);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+    }
+
+    .wd__service-item-container{
+        display: flex;
+        justify-content: space-between;
+        margin: 8px 4px;
+        align-items: center;
+    }
+
+    .wd__input-label-container{
+        width: 100%;
+    }
+
+
+    .wd__service-item-container{
+        display: flex;
+        justify-content: space-between;
+        margin: 8px 4px;
+        align-items: center;
+    }
+
+
+    .wd__service-nav{
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        width: 80%;
+        align-self: center;
+        margin: auto;
+        padding: 2rem;
+    }
+
+    .wd__input-label-container{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+    }
+
+    .wd__msisdn-input{
+        background: #F8F8F8;
+        border: 1px solid #E3E3E3;
+        box-sizing: border-box;
+        border-radius: 4px;
+        width: 80%;
+        height: 40px;
+        outline: none;
+        padding:  4px;
+        font-size: 14px;
+        margin: 8px 0;
+        text-align: center;
+    }
+
+    .wd__service-name{
+        font-weight: 500;
+        font-size: 14px;
+        color: #000;
+    }
+
+    .wd__service-tarrif{
+        font-size: 12px;
+        color: grey;
+        font-weight: normal;
+    }
+
+    .services_container{
+        width: 80%;
+    }
+
+    .wd__service-item-container{
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin: 1rem 0;
+        align-items: center;
+    }
+
+    .wd__btn-service-item-btn{
+        height: 32px;
+        width: fit-content;
+        padding: 8px;
+        background-color: #2CAB00;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        color: white;
+
+    }
+
+    .sub_btn_container{
+        width: 80%;
+    }
+
+    .wd__btn-subscribe{
+
+        height: 40px;
+        /*outline: #2fc700;*/
+        width: 100%;
+        transition: all 150ms linear;
+        font-size: 14px;
+        background: #181818;
+        border: 1px solid #E3E3E3;
+        box-sizing: border-box;
+        border-radius: 8px;
+        color: #fff;
+        margin: 1em 0;
+
+    }
+
+    .footer-rancard{
+        font-size: 12px;
+    }
+
+
+    .wd__input-label-container{
+        width: 100%;
+    }
+
+
+
+}
+
+

@@ -28,7 +28,12 @@ module.exports = {
             },
             {
                 test: /\.(png|j?g|svg|gif)?$/,
-                use: 'file-loader'
+                use: {
+                    loader: "file-loader",
+                    options: {
+                        limit: 25000,
+                    },
+                },
             }
         ]
     },
