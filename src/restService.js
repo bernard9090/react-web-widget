@@ -3,6 +3,7 @@ import $ from "jquery"
 
 // const BASE_URL = "http://localhost:8990";
 //http://header.rancardmobility.com/decrypt
+// http://sandbox.rancardmobility.com/widget/decrypt
 const BASE_URL = "https://sdp3.rancardmobility.com";
 axios.create({
     headers:{
@@ -13,11 +14,11 @@ axios.create({
 export const headerEnriched = () => {
     const config = {
         method: 'get',
-        url: 'http://sandbox.rancardmobility.com/widget/decrypt',
+        url: 'http://header.rancardmobility.com/decrypt',
         headers: {
             'Access-Control-Allow-Origin': '*',
             // "MSISDN": "233261213507",
-            // "IMSI":"somethinghere"
+            "IMSI":"somethinghere"
         }
     };
     return axios(config)
@@ -26,10 +27,12 @@ export const headerEnriched = () => {
 export const headerEnrichedAirtelTigoMtn = () => {
     const config = {
         method: 'get',
-        url: 'http://sandbox.rancardmobility.com/widget/decrypt',
+        url: 'http://header.rancardmobility.com/decrypt',
         headers: {
             'Access-Control-Allow-Origin': '*',
-            // "MSISDN": "233273603149",
+            "msisdn": "233209380064",
+            "IMSI":"somethinghere"
+
         }
     };
 
@@ -66,7 +69,7 @@ export const fetchWidgetData = (providerId) => {
         method:"GET",
         url:`${BASE_URL}/api/v1/subscriber/widgetData?providerAccountId=${providerId}`
     })
-}
+};
 
 export const retrieveServices = (providerId, msisdn) => {
     return axios({
@@ -94,4 +97,16 @@ export const confirmSubscriptionAIRTELTIGO = (otp, msisdn, providerAccountId, se
             providerAccountId
         }
     })
-}
+};
+
+
+export const widgetSubscriptionLookup = (keyword, msisdn) => {
+    return axios({
+        method:"GET",
+        url:`${BASE_URL}/widget/subscription/lookup`,
+        params:{
+            keyword,
+            msisdn
+        }
+    })
+};

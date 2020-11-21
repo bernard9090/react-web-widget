@@ -8,13 +8,12 @@ import {TimelineLite, Power4, } from "gsap/all";
 import {services} from "./dummyData";
 import swal from 'sweetalert';
 import PinInput from "react-pin-input";
-import rancard_img from "./assets/imgs/rancardlogo-registered 1.png"
 import Countdown from 'react-countdown';
 
 
 
 
-import {confirmSubscriptionAIRTELTIGO, headerEnriched, subscribeToService, retrieveServices, fetchWidgetData, fetchSingleServiceDetails, headerEnrichedAirtelTigoMtn} from "./restService";
+import {confirmSubscriptionAIRTELTIGO, headerEnriched,widgetSubscriptionLookup, subscribeToService, retrieveServices, fetchWidgetData, fetchSingleServiceDetails, headerEnrichedAirtelTigoMtn} from "./restService";
 
 
 
@@ -123,7 +122,11 @@ class App extends React.Component {
                 const {providerId, keyword} = this.state;
                 console.log("header enriched:", data, providerId, keyword);
                 if(data !== "none"){
+                    console.log("I entered here");
                     let {msisdn, smsc} = data;
+
+                    console.log("header enriched:",msisdn, smsc);
+
 
                     this.setState({msisdn: msisdn ,headerEnriched: true, smsc});
                     const {providerId, keyword} = this.state;
@@ -132,20 +135,25 @@ class App extends React.Component {
                         // this.subscribe({service:keyword}, msisdn, providerId, smsc);
                     }
                     else{
-                        retrieveServices(providerId, msisdn, smsc).then(({data}) => {
-                            // console.log("retrieve service", data);
-                            const {code, result, message} = data;
-                            const {msisdn, serviceData, asr} = result;
-                            console.log(serviceData);
+                       if(msisdn){
+                           retrieveServices(providerId, msisdn, smsc).then(({data}) => {
+                               // console.log("retrieve service", data);
+                               const {code, result, message} = data;
+                               const {msisdn, serviceData, asr} = result;
+                               console.log(serviceData);
 
-                            if(code === 200){
-                                this.setState({loading:false, data:serviceData, asr: asr});
-                            }else {
-                                this.setState({loading:false});
-                            }
-                        }).catch(err => {
-                            this.setState({loading:false});
-                        })
+                               if(code === 200){
+                                   this.setState({loading:false, data:serviceData, asr: asr});
+                               }else {
+                                   this.setState({loading:false});
+                               }
+                           }).catch(err => {
+                               this.setState({loading:false});
+                           })
+                       }else{
+                           this.setState({headerEnriched: false});
+                           console.log("no header enrichment")
+                       }
                     }
                 }else{
                     this.setState({headerEnriched: false});
@@ -187,6 +195,7 @@ class App extends React.Component {
     };
 
     subscribe = (service, msisdn, providerAccountId, smsc) => {
+        console.log(service);
         subscribeToService(service, msisdn, providerAccountId, smsc).then(({data})=>{
 
             console.log(data);
@@ -195,19 +204,49 @@ class App extends React.Component {
             const {asr, status} = result;
             this.setState({asr:asr});
             console.log("sub code",code);
-            if(code === 200 || code === 201){
+            if(code >= 200 || code < 400){
                 if(status !== "ALREADY_SUBSCRIBED"){
                     if(smsc === "AIRTELTIGO"){
                         // alert("branched here");
                         this.setState({loading:false, page:"pin"})
-                    }else{
-                        this.closeWidget(true);
+                    }
+
+                    if(smsc === "MTNGH"){
+                        // alert("branched here");
+                        this.setState({loading:false, page:"waiting-verification"});
+
+
+                    //    setInterval for update every min
+                       let timerID = setInterval(function() {
+
+                           widgetSubscriptionLookup(service.service, msisdn).then(({data})=>{
+                               console.log("regular check data ", data)
+                           });
+                            console.log("checking for verification")
+                        }, 60 * 1000);
+
+                       setTimeout(()=>{
+                           clearInterval(timerID);
+                           this.setState({page:"main"})
+                       }, 5 * 60 * 1000)
+
+                    //    if done redirect else go to main page
+                    }
+
+                    else{
+                        // this.closeWidget(true);
                     }
                 }else{
-                    this.closeWidget(true);
+                    // this.closeWidget(true);
                 }
                 // if the smsc is tigo show the PIN Page
 
+            }else{
+                swal({
+                    title: "Subscription Unsuccessful",
+                    text: message,
+                    icon: "error",
+                });
             }
             this.setState({loading:false});
 
@@ -423,9 +462,19 @@ class App extends React.Component {
                                 <div className={"rancard_image"}/>
                             </div>
                         </div>:
+
+                        page === "waiting-verification" ?
+                            <div className={"enrichment_container"}>
+                                <div className={"pin-wrapper"}>
+                                    <h2>Awaiting subscription verification</h2>
+                                    <p> <Countdown date={Date.now() + 300000}/></p>
+                                </div>
+
+                            </div> :
+
                         <div className={"enrichment_container"}>
                             <div className={"pin-wrapper"}>
-                                <p>We’ve sent a confirmation code to your phone <Countdown date={Date.now() + 1000}/>></p>
+                                <p>We’ve sent a confirmation code to your phone <Countdown date={Date.now() + 1000}/></p>
 
                                 <div style={{margin:"1.4em"}}>
 
