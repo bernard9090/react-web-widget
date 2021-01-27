@@ -9,9 +9,12 @@ import {services} from "./dummyData";
 import swal from 'sweetalert';
 import PinInput from "react-pin-input";
 import Countdown from 'react-countdown';
+import {isMobile} from "react-device-detect"
+
+const queryString = require('query-string');
 
 
-
+const PAGINATE_NUMBER = 3;
 
 import {confirmSubscriptionAIRTELTIGO, headerEnriched,widgetSubscriptionLookup, subscribeToService, retrieveServices, fetchWidgetData, fetchSingleServiceDetails, headerEnrichedAirtelTigoMtn} from "./restService";
 
@@ -43,7 +46,9 @@ class App extends React.Component {
             widgetData:{},
             smsc:"",
             page:"main",
-            pin:""
+            pin:"",
+            urlCallback:"",
+            adId:null
         };
 
         this.widget = createRef();
@@ -52,12 +57,15 @@ class App extends React.Component {
         this.container = createRef();
         this.closeWidget = this.closeWidget.bind(this);
         this.tl = new TimelineLite();
+        this.subscribe = this.subscribe.bind(this);
+        this.getAllUserServices = this.getAllUserServices.bind(this)
 
     }
 
 
 
     componentWillMount() {
+
 
         const scripts = document.getElementsByTagName("script");
         for(let i = 0; i<= scripts.length; i++){
@@ -66,46 +74,39 @@ class App extends React.Component {
                 let scriptSrc = script.src;
                 if(scriptSrc.includes("sdp-ds-widget.js")){
                     let params = scriptSrc.split("#");
+
                     let providerId = params[1];
                     let serviceKeyword = params[2] ? params[2] : null;
 
-                    console.log("provider", providerId, serviceKeyword);
+                    console.log("Script Params: ", providerId,serviceKeyword);
+                    this.setState( {
+                        providerId:providerId,
+                        keyword: serviceKeyword
+                    });
+
+
 
                     if(providerId !== undefined){
-
                         fetchWidgetData(providerId).then(({data})=> {
                            console.log("widget data", data.result);
                            this.setState({widgetData: data.result})
                         });
-
-                        this.setState(()=>{
-                            return {
-                                providerId:providerId,
-                                keyword: serviceKeyword
-                            }
-                        });
-
-
-
-                        // undefined keyword means multi service
-                        if(serviceKeyword !== undefined){
-                            fetchSingleServiceDetails(providerId, serviceKeyword).then(({data})=>{
-                                const {result} = data;
-                                console.log("single service data", result);
-                                this.setState((prevState)=>{
-                                    return {singleServiceDetails:result}
-                                })
-                            }).catch(error => {
-                                console.log("single service error", error)
-                            })
-                        }
                     }
 
-
-
-
                 }
+                break
             }
+        }
+
+
+    //    check if there is a callback in the URL
+        const parsed = queryString.parse(location.search);
+        console.log(parsed);
+        if(parsed){
+            const {callback, adId} = parsed;
+            this.setState({urlCallback: callback});
+            if(adId)
+                this.setState({adId:adId})
         }
 
 
@@ -115,51 +116,54 @@ class App extends React.Component {
     componentDidMount() {
 
         this._isMounted = true;
-        // this.showModal()
 
         headerEnrichedAirtelTigoMtn()
             .then(({data})=> {
                 const {providerId, keyword} = this.state;
-                console.log("header enriched:", data, providerId, keyword);
+                // console.log("header enriched:", data, providerId, keyword);
                 if(data !== "none"){
-                    console.log("I entered here");
+                    // console.log("I entered here");
                     let {msisdn, smsc} = data;
 
-                    console.log("header enriched:",msisdn, smsc);
+                    // console.log("header enriched:",msisdn, smsc);
 
 
-                    this.setState({msisdn: msisdn ,headerEnriched: true, smsc});
+                    this.setState({msisdn: msisdn ,headerEnriched: true, smsc:smsc});
                     const {providerId, keyword} = this.state;
 
-                    if(keyword !== null){
-                        // this.subscribe({service:keyword}, msisdn, providerId, smsc);
-                    }
-                    else{
-                       if(msisdn){
-                           retrieveServices(providerId, msisdn, smsc).then(({data}) => {
-                               // console.log("retrieve service", data);
-                               const {code, result, message} = data;
-                               const {msisdn, serviceData, asr} = result;
-                               console.log(serviceData);
+                    if(msisdn && keyword == null){
+                        retrieveServices(providerId, msisdn, smsc, keyword).then(({data}) => {
+                            // console.log("retrieve service", data);
+                            const {code, result, message} = data;
+                            const {msisdn, serviceData, asr} = result;
+                            console.log(serviceData);
 
-                               if(code === 200){
-                                   this.setState({loading:false, data:serviceData, asr: asr});
-                               }else {
-                                   this.setState({loading:false});
-                               }
-                           }).catch(err => {
-                               this.setState({loading:false});
-                           })
-                       }else{
-                           this.setState({headerEnriched: false});
-                           console.log("no header enrichment")
-                       }
+                            if(code === 200){
+                                this.setState({loading:false, data:serviceData, asr: asr});
+                            }else {
+                                this.setState({loading:false});
+                            }
+                        }).catch(err => {
+                            this.setState({loading:false});
+                        })
+                    }else{
+                        this.setState({headerEnriched: false});
+                        // console.log("no header enrichment")
                     }
+
+                    // if(keyword !== null){
+                    //     // this.subscribe({service:keyword}, msisdn, providerId, smsc);
+                    // }
+                    // else{
+                    //
+                    // }
                 }else{
                     this.setState({headerEnriched: false});
-                    console.log("no header enrichment")
+                    // console.log("no header enrichment")
                 }
-            })
+            }).catch(()=>{
+
+        })
 
 
     }
@@ -173,14 +177,18 @@ class App extends React.Component {
 
     closeWidget = (redirect = false) => {
         const {widgetData} = this.state;
-        console.log("Closing widget", widgetData);
+        // console.log("Closing widget", widgetData);
         this.setState({loading:false});
         this.tl.reverse();
+        // this.widget.current.style.visibility = "hidden";
         this.container.current.style.visibility = "hidden";
-        this.widget.current.style.visibility = "hidden";
 
         if(redirect){
-            window.location =`${widgetData.frontendSyncUrl}?asr=${encodeURIComponent(this.state.asr)}`;
+            if(this.state.urlCallback && this.state.urlCallback.length > 0){
+                window.location =`${this.state.urlCallback}?asr=${encodeURIComponent(this.state.asr)}`;
+            }else{
+                window.location =`${widgetData.frontendSyncUrl}?asr=${encodeURIComponent(this.state.asr)}`;
+            }
         }
 
         // swal({
@@ -195,51 +203,61 @@ class App extends React.Component {
     };
 
     subscribe = (service, msisdn, providerAccountId, smsc) => {
-        console.log(service);
-        subscribeToService(service, msisdn, providerAccountId, smsc).then(({data})=>{
+        // console.log(service);
+        const closeWd = this.closeWidget;
+        subscribeToService(service, msisdn, providerAccountId, smsc, this.state.adId).then(({data})=>{
 
-            console.log(data);
 
             const {result, message, code} = data;
-            const {asr, status} = result;
-            this.setState({asr:asr});
             console.log("sub code",code);
-            if(code >= 200 || code < 400){
+
+            if(code < 400){
+                const {asr, status} = result;
+
+                this.setState({asr:asr});
+
+                // console.log("code 200", asr, status);
+
                 if(status !== "ALREADY_SUBSCRIBED"){
                     if(smsc === "AIRTELTIGO"){
-                        // alert("branched here");
                         this.setState({loading:false, page:"pin"})
                     }
 
-                    if(smsc === "MTNGH"){
-                        // alert("branched here");
-                        this.setState({loading:false, page:"waiting-verification"});
+                    else if(smsc === "MTNGH"){
+
+                        this.setState({loading:false, page:"waiting-verification", asr:msisdn});
 
 
-                    //    setInterval for update every min
-                       let timerID = setInterval(function() {
+                        let sublookup = setInterval(function() {
 
-                           widgetSubscriptionLookup(service.service, msisdn).then(({data})=>{
-                               console.log("regular check data ", data)
-                           });
-                            console.log("checking for verification")
-                        }, 60 * 1000);
+                            widgetSubscriptionLookup(service.service, msisdn).then(({data})=>{
+                                // console.log("regular check data ", data);
 
-                       setTimeout(()=>{
-                           clearInterval(timerID);
-                           this.setState({page:"main"})
-                       }, 5 * 60 * 1000)
+                                if(data.result){
+                                    clearInterval(sublookup);
+                                    closeWd(true)
+                                }
+                            });
+                            // console.log("checking for verification")
+                        },  10 * 1000);
 
-                    //    if done redirect else go to main page
+                        setTimeout(()=>{
+                            swal({
+                                title: "Subscription Unsuccessful",
+                                text: "An error occurred while subscribing to this service, please try again later!",
+                                icon: "error",
+                            });
+                            clearInterval(sublookup);
+                            this.setState({page:"main"})
+                        }, 30 * 1000)
                     }
-
                     else{
-                        // this.closeWidget(true);
+                        this.closeWidget(true);
                     }
                 }else{
-                    // this.closeWidget(true);
+                    this.closeWidget(true)
+
                 }
-                // if the smsc is tigo show the PIN Page
 
             }else{
                 swal({
@@ -259,6 +277,31 @@ class App extends React.Component {
             });
         });
     };
+
+    getAllUserServices = (providerId, msisdn) =>{
+        retrieveServices(providerId, msisdn).then(({data}) => {
+            // console.log("retrieve service", data);
+            const {code, result, message} = data;
+            const {msisdn, serviceData, asr} = result;
+
+            if(code === 200){
+                this.setState({loading:false, data:serviceData, asr: asr});
+            }else {
+                swal({
+                    title: "Error fetching services",
+                    text: "You clicked the button!",
+                    icon: "error",
+                });
+                this.setState({loading:false});
+
+            }
+
+
+
+        }).catch(err => {
+            this.setState({loading:false});
+        })
+    }
 
     onClear = () => {
         this.setState({
@@ -293,247 +336,259 @@ class App extends React.Component {
     };
 
 
+
+
+
+
     render() {
 
 
         const {index, data, subscribeLoading,loading, selectedService, msisdnError, keyword, singleServiceDetails, page} = this.state;
-        // console.log(this.state)
 
+        const WaitingVerificationPage = () => {
+            return (
+                <div className={"enrichment_container"}>
+                    <div className={"pin-wrapper"}>
+                        <h2>Awaiting subscription verification</h2>
+                        <p> <Countdown date={Date.now() + 30000}/></p>
+                    </div>
+
+                </div>
+            )
+        };
+
+        const MainPage = () => {
+            return (
+                <div ref={this.widget} className={"enrichment_container"}>
+
+                    <div style={{
+                        width:"100%",
+                        display:"flex",
+                        justifyContent:"space-between",
+                        alignItems:"center"}}
+                    >
+                        <IosClose color={"red"}  fontSize={"40px"} onClick={()=>{
+                            this.closeWidget(true)
+                        }}/>
+                    </div>
+
+
+
+                    {
+                        keyword !== null ?
+                            <p ref={this.testFadeIn} className={"en_info"}>
+                                Get {singleServiceDetails && singleServiceDetails.service} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariff} / day` : "."}
+                            </p>:
+                            <p ref={this.testFadeIn} className={"en_info"}>
+                                Get Content directly to your mobile!
+                            </p>
+                    }
+
+
+                    <div className={"wd__input-label-container"}>
+                        <p className={"wd__input-label-desc"}>Please enter your phone number</p>
+                        <input
+                            readOnly={true}
+                            placeholder={"Phone Number"}
+                            disabled={this.state.headerEnriched}  style={{
+                            border: msisdnError ? "2px solid red" : null
+                        }}
+
+                            defaultValue={this.state.msisdn}
+                            onChange={(e) => {this.setState({msisdn:e.target.value, msisdnChange:true, msisdnError:false})}}
+                            className={"wd__msisdn-input"} type="tel"/>
+
+                        {
+                            data.length < 1 &&
+                            <div className={"sub_btn_container"}>
+                                <button style={{width:"100% "}}  onClick={()=>{
+                                    const {providerId, keyword, msisdn, smsc} = this.state;
+                                    // console.log(providerId, keyword, msisdn);
+
+                                    if(msisdn.length < 10){
+                                        this.setState({msisdnError:true})
+                                    }else{
+                                        this.setState({loading:true});
+                                        if(keyword !== null){
+                                            this.subscribe({service:keyword}, msisdn, providerId, smsc)
+                                        }else{
+                                            getAllUserServices(providerId, msisdn)
+                                        }
+                                    }
+
+                                }} className={"wd__btn-subscribe"}>Subscribe</button>
+                            </div>
+                        }
+                    </div>
+
+
+
+
+
+                    {
+                        this.state.loading ? <div style={{margin:16, textAlign:"center"}}>Loading</div> : data.length > 0 ?
+                            <div className={"services_container"}>
+                                <div style={{width:"100%"}}>
+                                    {
+                                        data.slice(index, index + PAGINATE_NUMBER).map((item, index)=>{
+                                            if(item.status === "subscribed"){
+                                                this.setState({singleServiceSubscribed: true})
+                                            }
+                                            return(
+                                                <div key={index} className={"wd__service-item-container"}>
+                                                    <div >
+                                                        <div className={"wd__service-name"}>{item.service}</div>
+                                                        <span className={"wd__service-tarrif"}>Ghs {item.tariff !== null ? item.tariff : "0.00"} / day</span>
+                                                    </div>
+
+                                                    <button
+                                                        disabled={item.status !== null}
+                                                        onClick={()=>{
+                                                            let {msisdn, msisdnChange, providerId, smsc} = this.state;
+                                                            if(msisdn !== ""){
+
+                                                                this.setState({selectedService:item, loading:true, msisdnError:false});
+
+                                                                this.subscribe(item, msisdn, providerId, smsc)
+                                                            }else{
+                                                                this.setState({msisdnError:true})
+                                                            }
+                                                        }} className={"wd__btn-service-item-btn"}>{item.status === null ? "Subscribe" : "Subscribed"}</button>
+                                                </div>
+                                            )
+                                        })
+                                    }
+                                </div>
+
+
+                                {
+                                    data.length > PAGINATE_NUMBER && <div className={"wd__service-nav"}>
+
+                                        <MdArrowRoundBack color={index <= 0 ? "gray":"black"} onClick={()=> {
+                                            const cannotGoBack = index <= 0;
+                                            if(cannotGoBack)
+                                                return;
+                                            this.setState({index: index - PAGINATE_NUMBER})
+                                        }
+                                        }/>
+
+                                        <MdArrowRoundForward color={index + PAGINATE_NUMBER >= data.length ? "gray":"black"} onClick={()=> {
+                                            const cannotShowMoreItems = index + PAGINATE_NUMBER >= data.length;
+                                            if(cannotShowMoreItems)
+                                                return;
+                                            this.setState({index: index+PAGINATE_NUMBER})
+                                        }}/>
+
+                                    </div>
+                                }
+
+                                {
+                                    this.state.singleServiceSubscribed && <div >
+                                        <button onClick={()=>{
+                                            this.closeWidget(true)
+                                        }} className="wd__btn-subscribe">DONE</button>
+                                    </div>
+                                }
+
+                            </div>
+                            :
+                            null
+                    }
+                    <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
+                        <img src={"http://sandbox.rancardmobility.com/static/images/rancard_widget.svg"} style={{height:20, marginLeft:8}} alt="rancard"/>
+                        <div className={"rancard_image"}/>
+                    </div>
+                </div>
+            )
+        };
+
+        const  PinConfirmationPage = () => {
+            return(
+                <div className={"enrichment_container"}>
+                    <div className={"pin-wrapper"}>
+                        <p>We’ve sent a confirmation code to your phone <Countdown date={Date.now() + 30 * 1000}/></p>
+
+                        <div style={{margin:"1.4em"}}>
+
+
+                            <div className={"pin-input-container"}>
+                                <div>
+                                    <p>Please enter your confirmation PIN</p>
+                                </div>
+                                <PinInput
+                                    length={4}
+                                    focus
+                                    value={this.state.pin}
+                                    inputStyle={{
+                                        width: isMobile ? 40 :  64,
+                                        height: isMobile ? 40 : 64,
+                                        background: "#F8F8F8",
+                                        border: "1px solid #E3E3E3",
+                                        boxSizing: "border-box",
+                                        borderRadius:isMobile? 4: 10,
+                                        fontSize:isMobile ? 16 : 18,
+                                        margin:"8px"
+                                    }}
+                                    ref={p => (this.pin = p)}
+                                    type="numeric"
+                                    onChange={this.onChange}
+                                />
+                            </div>
+                        </div>
+
+                        <button disabled={loading} onClick={()=>{
+                            const {pin, msisdn, providerId, keyword} = this.state;
+                            if(pin !== "" && pin.length === 4){
+                                this.setState({loading:true});
+                                confirmSubscriptionAIRTELTIGO(pin, msisdn, providerId, keyword).then(({data})=>{
+                                    const {result, message, code} = data;
+                                    // console.log(data);
+                                    const {asr} = result;
+                                    // this.setState({asr:asr});
+                                    if(code === 200){
+                                        this.closeWidget(true)
+                                    }else{
+                                        swal.fire({
+                                            icon:"error",
+                                            text:message
+                                        })
+                                    }
+                                }).catch(e => {
+                                    swal.fire({
+                                        icon:"error",
+                                        text:"Please try again."
+                                    })
+                                }).finally(()=>{
+                                    this.setState({loading:false})
+                                })
+                            }
+                        }} className={"btn-confirm"}>Confirm</button>
+                    </div>
+                    <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
+                        <img src={"http://sandbox.rancardmobility.com/static/images/rancard_widget.svg"} style={{height:20, marginLeft:8}} alt="rancard"/>
+                        <div className={"rancard_image"}/>
+                    </div>
+                </div>
+            )
+        }
 
 
         return(
+
+
             <div ref={this.container} className={"sdp_widget__container"}>
 
                 {
                     page === "main" ?
-                        <div ref={this.widget} className={"enrichment_container"}>
-
-                            <div style={{
-                                width:"100%",
-                                display:"flex",
-                                justifyContent:"space-between",
-                                alignItems:"center"}}
-                            >
-                                {/*<div >*/}
-                                {/*    {*/}
-                                {/*        loading && <div style={{ display:"flex",alignItems:"center"}}> <MdRefresh rotate={true} color={"teal"} fontSize={"30px"} /> Subscribing to {selectedService.service}</div>*/}
-
-                                {/*    }*/}
-                                {/*</div>*/}
-
-                                <IosClose color={"red"}  fontSize={"40px"} onClick={()=>{
-                                    this.closeWidget(true)
-                                }}/>
-                            </div>
-
-
-
-                            {
-                                keyword !== null ?
-                                    <p ref={this.testFadeIn} className={"en_info"}>
-                                        Get {singleServiceDetails && singleServiceDetails.service} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariff} / day` : "."}
-                                    </p>:
-                                    <p ref={this.testFadeIn} className={"en_info"}>
-                                        Get Content directly to your mobile!
-                                    </p>
-                            }
-
-
-                            <div className={"wd__input-label-container"}>
-                                <p className={"wd__input-label-desc"}>Please enter your phone number</p>
-                                <input
-                                    placeholder={"Phone Number"}
-                                    disabled={this.state.headerEnriched}  style={{
-                                    border: msisdnError ? "2px solid red" : null
-                                }}
-
-                                    defaultValue={this.state.msisdn}
-                                    onChange={(e) => {this.setState({msisdn:e.target.value, msisdnChange:true, msisdnError:false})}}
-                                    className={"wd__msisdn-input"} type="tel"/>
-
-                                {
-                                    data.length < 1 &&
-                                    <div className={"sub_btn_container"}>
-                                        <button style={{width:"100% "}}  onClick={()=>{
-                                            const {providerId, keyword, msisdn, smsc} = this.state;
-                                            console.log(providerId, keyword, msisdn);
-
-                                            if(msisdn.length < 10){
-                                                this.setState({msisdnError:true})
-                                            }else{
-                                                this.setState({loading:true});
-                                                if(keyword !== null){
-                                                   this.subscribe({service:keyword}, msisdn, providerId, smsc)
-                                                }else{
-                                                    retrieveServices(providerId, msisdn).then(({data}) => {
-                                                        console.log("retrieve service", data);
-                                                        const {code, result, message} = data;
-                                                        const {msisdn, serviceData, asr} = result;
-
-                                                        if(code === 200){
-                                                            this.setState({loading:false, data:serviceData, asr: asr});
-                                                        }else {
-                                                            swal({
-                                                                title: "Error fetching services",
-                                                                text: "You clicked the button!",
-                                                                icon: "error",
-                                                            });
-                                                            this.setState({loading:false});
-
-                                                        }
-
-
-
-                                                    }).catch(err => {
-                                                        this.setState({loading:false});
-                                                    })
-                                                }
-                                            }
-
-                                        }} className={"wd__btn-subscribe"}>Subscribe</button>
-                                    </div>
-                                }
-                            </div>
-
-
-
-
-
-                            {
-                                this.state.loading ? <div style={{margin:16, textAlign:"center"}}>Loading</div> : data.length > 0 ?
-                                    <div className={"services_container"}>
-                                        <div style={{width:"100%"}}>
-                                            {
-                                                data.slice(index, index + 3).map((item, index)=>{
-                                                    if(item.status === "subscribed"){
-                                                        this.setState({singleServiceSubscribed: true})
-                                                    }
-                                                    return(
-                                                        <div key={index} className={"wd__service-item-container"}>
-                                                            <div >
-                                                                <div className={"wd__service-name"}>{item.service}</div>
-                                                                <span className={"wd__service-tarrif"}>Ghs {item.tariff !== null ? item.tariff : "0.00"} / day</span>
-                                                            </div>
-
-                                                            <button
-                                                                disabled={item.status !== null}
-                                                                onClick={()=>{
-                                                                    let {msisdn, msisdnChange, providerId, smsc} = this.state;
-                                                                    if(msisdn !== ""){
-
-                                                                        this.setState({selectedService:item, loading:true, msisdnError:false});
-
-                                                                        this.subscribe(item, msisdn, providerId, smsc)
-                                                                    }else{
-                                                                        this.setState({msisdnError:true})
-                                                                    }
-                                                                }} className={"wd__btn-service-item-btn"}>{item.status === null ? "Subscribe" : "Subscribed"}</button>
-                                                        </div>
-                                                    )
-                                                })
-                                            }
-                                        </div>
-
-
-                                        {
-                                            data.length > 3 && <div className={"wd__service-nav"}>
-
-                                                <MdArrowRoundBack onClick={()=> this.moveBack()}/>
-
-                                                <MdArrowRoundForward onClick={()=> this.moveNext()}/>
-
-                                            </div>
-                                        }
-
-                                        {
-                                            this.state.singleServiceSubscribed && <div >
-                                                <button onClick={()=>{
-                                                    this.closeWidget(true)
-                                                }} className="wd__btn-subscribe">DONE</button>
-                                            </div>
-                                        }
-
-                                    </div>
-                                    :
-                                    null
-                            }
-                            <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
-                                <img src={"http://sandbox.rancardmobility.com/static/images/rancard_widget.svg"} style={{height:20, marginLeft:8}} alt="rancard"/>
-                                <div className={"rancard_image"}/>
-                            </div>
-                        </div>:
+                       <MainPage/>
+                        :
 
                         page === "waiting-verification" ?
-                            <div className={"enrichment_container"}>
-                                <div className={"pin-wrapper"}>
-                                    <h2>Awaiting subscription verification</h2>
-                                    <p> <Countdown date={Date.now() + 300000}/></p>
-                                </div>
-
-                            </div> :
-
-                        <div className={"enrichment_container"}>
-                            <div className={"pin-wrapper"}>
-                                <p>We’ve sent a confirmation code to your phone <Countdown date={Date.now() + 1000}/></p>
-
-                                <div style={{margin:"1.4em"}}>
+                            <WaitingVerificationPage/>
+                             :
+                            <PinConfirmationPage/>
 
 
-                                    <div className={"pin-input-container"}>
-                                        <div>
-                                            <p>Please enter your confirmation PIN</p>
-                                        </div>
-                                        <PinInput
-                                            length={4}
-                                            focus
-                                            inputStyle={{
-                                                width: 64,
-                                                height: 64,
-                                                background: "#F8F8F8",
-                                                border: "1px solid #E3E3E3",
-                                                boxSizing: "border-box",
-                                                borderRadius: 10,
-                                                fontSize:18,
-                                                margin:"8px"
-                                            }}
-                                            // disabled
-                                            ref={p => (this.pin = p)}
-                                            type="numeric"
-                                            onChange={this.onChange}
-                                        />
-                                    </div>
-                                </div>
-
-                                <button disabled={loading} onClick={()=>{
-                                    const {pin, msisdn, providerId, keyword} = this.state;
-                                    if(pin !== "" && pin.length === 4){
-                                        this.setState({loading:true});
-                                        confirmSubscriptionAIRTELTIGO(pin, msisdn, providerId, keyword).then(({data})=>{
-                                            const {result, message, code} = data;
-                                            if(code === 200){
-                                                this.closeWidget(true)
-                                            }else{
-                                                swal.fire({
-                                                    icon:"error",
-                                                    text:message
-                                                })
-                                            }
-                                        }).catch(e => {
-                                            swal.fire({
-                                                icon:"error",
-                                                text:"Please try again."
-                                            })
-                                        }).finally(()=>{
-                                            this.setState({loading:false})
-                                        })
-                                    }
-                                }} className={"btn-confirm"}>Confirm</button>
-                            </div>
-                            <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
-                                <img src={"http://sandbox.rancardmobility.com/static/images/rancard_widget.svg"} style={{height:20, marginLeft:8}} alt="rancard"/>
-                                <div className={"rancard_image"}/>
-                            </div>
-                        </div>
                 }
 
 
@@ -544,6 +599,11 @@ class App extends React.Component {
 
 
     }
+
+
+
+
+
 
 }
 

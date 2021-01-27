@@ -26,13 +26,12 @@ export const headerEnriched = () => {
 
 export const headerEnrichedAirtelTigoMtn = () => {
     const config = {
-        method: 'get',
+        method: 'GET',
         url: 'http://header.rancardmobility.com/decrypt',
         headers: {
             'Access-Control-Allow-Origin': '*',
-            "msisdn": "233209380064",
+            "MSISDN": "233261213507",
             "IMSI":"somethinghere"
-
         }
     };
 
@@ -47,9 +46,8 @@ export const fetchUserServices = (providerId, serviceKeyword, msisdn) => {
 };
 
 
-export const subscribeToService = ({keyword, service,  shortcode}, msisdn, providerAccountId, smsc) => {
+export const subscribeToService = ({keyword, service,  shortcode}, msisdn, providerAccountId, smsc, adId=0) => {
     console.log(service, msisdn, providerAccountId, shortcode, keyword);
-    let shortcode_ = shortcode ? shortcode : null;
     let service_ = keyword ? keyword : service;
     return axios({
         method: "GET",
@@ -57,9 +55,10 @@ export const subscribeToService = ({keyword, service,  shortcode}, msisdn, provi
         params:{
             service:service_,
             msisdn,
-            shortcode:shortcode_? shortcode :"",
+            shortcode:shortcode,
             providerAccountId,
-            smsc
+            smsc,
+            advertisingId:adId
         }
     })
 };
@@ -67,21 +66,34 @@ export const subscribeToService = ({keyword, service,  shortcode}, msisdn, provi
 export const fetchWidgetData = (providerId) => {
     return axios({
         method:"GET",
-        url:`${BASE_URL}/api/v1/subscriber/widgetData?providerAccountId=${providerId}`
+        url:`${BASE_URL}/api/v1/subscriber/widgetData`,
+        params:{
+            providerAccountId: providerId
+        }
     })
 };
 
-export const retrieveServices = (providerId, msisdn) => {
+export const retrieveServices = (providerId, msisdn,smsc, keyword) => {
     return axios({
         method:"GET",
-        url: `${BASE_URL}/api/v1/subscriber/widget/services?providerAccountId=${providerId}&msisdn=${msisdn}`
+        url: `${BASE_URL}/api/v1/subscriber/widget/services`,
+        params:{
+            providerAccountId:providerId,
+            msisdn,
+            keyword,
+            smsc
+        }
     })
 };
 
 export const fetchSingleServiceDetails = (providerId, keyword) => {
     return axios({
         method:"GET",
-        url: `${BASE_URL}/api/v1/subscriber/widget/service/details?keyword=${keyword}&providerAccountId=${providerId}`
+        url: `${BASE_URL}/api/v1/subscriber/widget/service/details`,
+        params:{
+            keyword,
+            providerAccountId: providerId
+        }
     })
 };
 
@@ -100,12 +112,12 @@ export const confirmSubscriptionAIRTELTIGO = (otp, msisdn, providerAccountId, se
 };
 
 
-export const widgetSubscriptionLookup = (keyword, msisdn) => {
+export const widgetSubscriptionLookup = (service, msisdn) => {
     return axios({
         method:"GET",
-        url:`${BASE_URL}/widget/subscription/lookup`,
+        url:`${BASE_URL}/api/v1/subscriber/widget/subscription/lookup`,
         params:{
-            keyword,
+            service,
             msisdn
         }
     })
