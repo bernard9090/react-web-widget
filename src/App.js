@@ -4,22 +4,29 @@ import IosClose from "react-ionicons/lib/IosClose"
 import MdRefresh from "react-ionicons/lib/MdRefresh"
 import MdArrowRoundForward from "react-ionicons/lib/MdArrowRoundForward"
 import MdArrowRoundBack from "react-ionicons/lib/MdArrowRoundBack"
-import {TimelineLite, Power4, TweenMax } from "gsap/all";
+import {TimelineLite, Power4, } from "gsap/all";
 import {services} from "./dummyData";
 import swal from 'sweetalert';
 import PinInput from "react-pin-input";
 import Countdown from 'react-countdown';
 import {isMobile} from "react-device-detect"
-// import {Loader} from "./components";
 import Loader from "./components/Loader"
+
+
+import {
+    confirmSubscriptionAIRTELTIGO,
+    widgetSubscriptionLookup,
+    subscribeToService,
+    retrieveServices,
+    fetchWidgetData,
+    headerEnrichedAirtelTigoMtn
+} from "./restService";
+
+
+
 const queryString = require('query-string');
-
-
 const PAGINATE_NUMBER = 3;
-
-import {confirmSubscriptionAIRTELTIGO, headerEnriched,widgetSubscriptionLookup, subscribeToService, retrieveServices, fetchWidgetData, fetchSingleServiceDetails, headerEnrichedAirtelTigoMtn} from "./restService";
-
-
+const RANCARD_LOGO = "http://sandbox.rancardmobility.com/static/images/rancard_widget.svg"
 
 
 class App extends React.Component {
@@ -33,9 +40,9 @@ class App extends React.Component {
             show:false,
             data:[],
             index:0,
-            loading:true,
-            providerId:null,
-            keyword:null,
+            loading:false,
+            providerId:"",
+            keyword:"",
             subscribeLoading:false,
             msisdn:"",
             msisdnChange:false,
@@ -47,7 +54,7 @@ class App extends React.Component {
             widgetData:{},
             smsc:"",
             page:"main",
-            pin:null,
+            pin:"",
             urlCallback:"",
             adId:null
         };
@@ -62,7 +69,8 @@ class App extends React.Component {
 
         this.subscribe = this.subscribe.bind(this);
         this.getAllUserServices = this.getAllUserServices.bind(this);
-        this.onChange = this.onChange.bind(this)
+        this.onChange = this.onChange.bind(this);
+        this.tl = new TimelineLite();
 
     }
 
@@ -120,16 +128,11 @@ class App extends React.Component {
 
 
     componentDidMount() {
-
-
-        this._isMounted = true;
-
         headerEnrichedAirtelTigoMtn()
             .then(({data})=> {
-                const {providerId, keyword} = this.state;
-                // console.log("header enriched:", data, providerId, keyword);
-                if(data !== "none"){
-                    // console.log("I entered here");
+                console.log("header enriched:", data);
+                if(data){
+                    console.log("I entered here");
                     let {msisdn, smsc} = data;
 
                     // console.log("header enriched:",msisdn, smsc);
@@ -166,27 +169,21 @@ class App extends React.Component {
                     // }
                 }else{
                     this.setState({headerEnriched: false});
-                    // console.log("no header enrichment")
+                    console.log("no header enrichment")
                 }
-            }).catch(()=>{
+            }).catch((e)=>{
+                console.log(e)
 
         })
 
 
     }
 
-
-    componentWillUnmount() {
-        this._isMounted = false;
-    }
-
-
-
     closeWidget = (redirect = false) => {
         const {widgetData} = this.state;
         // console.log("Closing widget", widgetData);
         this.setState({loading:false});
-        this.tl.reverse();
+        // this.tl.reverse();
         // this.widget.current.style.visibility = "hidden";
         this.container.current.style.visibility = "hidden";
 
@@ -207,7 +204,7 @@ class App extends React.Component {
 
     onChange = pin => {
         console.log(pin);
-        this.setState(()=>({pin: pin}) );
+        this.setState({pin: pin});
     };
 
     subscribe = (service, msisdn, providerAccountId, smsc) => {
@@ -358,7 +355,7 @@ class App extends React.Component {
         // const tl = new TimelineLite({paused:false});
         // tl.fromTo(this.container.current, 0.25, {opacity:0}, {opacity:1});
 
-        const {index, data, subscribeLoading,loading, selectedService, msisdnError, keyword, singleServiceDetails, page} = this.state;
+        const {index, data, subscribeLoading,loading, selectedService, msisdnError, keyword, singleServiceDetails, page, pin} = this.state;
 
        const WaitingVerificationPage = () => {
             return (
@@ -447,7 +444,7 @@ class App extends React.Component {
 
 
                             {
-                                this.state.loading ? <div style={{margin:16, textAlign:"center"}}><Loader/></div> : data.length > 0 ?
+                                this.state.loading ? <Loader/> : data.length > 0 ?
                                     <div className={"services_container"}>
                                         <div style={{width:"100%"}}>
                                             {
@@ -516,7 +513,7 @@ class App extends React.Component {
                                     null
                             }
                             <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
-                                <img src={"http://sandbox.rancardmobility.com/static/images/rancard_widget.svg"} style={{height:20, marginLeft:8}} alt="rancard"/>
+                                <img src={RANCARD_LOGO} style={{height:20, marginLeft:8}} alt="rancard"/>
                                 <div className={"rancard_image"}/>
                             </div>
                         </div>
@@ -538,7 +535,7 @@ class App extends React.Component {
                                             <PinInput
                                                 length={4}
                                                 focus
-                                                // value={this.state.pin}
+                                                value={this.state.pin}
                                                 inputStyle={{
                                                     width: isMobile ? 40 :  64,
                                                     height: isMobile ? 40 : 64,
@@ -556,34 +553,39 @@ class App extends React.Component {
                                         </div>
                                     </div>
 
-                                    <button disabled={loading} onClick={()=>{
+                                    <button disabled={this.pin === "" || loading} onClick={()=>{
                                         const {pin, msisdn, providerId, keyword} = this.state;
                                         if(pin !== "" && pin.length === 4){
                                             this.setState({loading:true});
                                             confirmSubscriptionAIRTELTIGO(pin, msisdn, providerId, keyword).then(({data})=>{
                                                 const {result, message, code} = data;
-                                                // console.log(data);
+                                                console.log(data);
                                                 const {asr} = result;
                                                 // this.setState({asr:asr});
-                                                if(code === 200){
+                                                if(code < 400){
                                                     this.closeWidget(true)
                                                 }else{
-                                                    swal.fire({
+                                                    swal({
                                                         icon:"error",
+                                                        title:"Pin verification failed",
                                                         text:message
                                                     })
                                                 }
-                                            }).catch(e => {
-                                                swal.fire({
+                                            }).catch((response) => {
+                                                console.log("response log ",response);
+                                                swal({
                                                     icon:"error",
-                                                    text:"Please try again."
+                                                    title:"Pin verification failed",
+                                                    // text:response.message
                                                 })
                                             }).finally(()=>{
                                                 this.setState({loading:false})
                                             })
                                         }
                                     }} className={"btn-confirm"}>Confirm</button>
+                                    {this.state.loading && <Loader/>}
                                 </div>
+
                                 <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
                                     <img src={"http://sandbox.rancardmobility.com/static/images/rancard_widget.svg"} style={{height:20, marginLeft:8}} alt="rancard"/>
                                     <div className={"rancard_image"}/>
@@ -605,6 +607,36 @@ class App extends React.Component {
 
 
     }
+
+
+    showModal = () => {
+        console.log("showing modal");
+        this.tl.fromTo(this.container.current,0.1, {
+            visibility:"hidden"
+        },{
+            visibility:"visible"
+        })
+            .fromTo(
+                this.widget.current,
+                0.7,
+                {
+                    opacity:0,
+                    visibility:"hidden",
+
+                }, {
+                    opacity:1,
+                    visibility:"visible",
+                    ease:Power4.easeInOut,
+                    onComplete: args => {
+                        // headerEnriched().then(({data})=>{
+                        //     this.fetchUserServices()
+                        // }).catch(err => {
+                        //
+                        // })
+                    }
+
+                });
+    };
 
 
 

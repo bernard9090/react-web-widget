@@ -18,19 +18,20 @@ export const headerEnriched = () => {
         headers: {
             'Access-Control-Allow-Origin': '*',
             // "MSISDN": "233261213507",
-            "IMSI":"somethinghere"
+            // "IMSI":"somethingher"
         }
     };
     return axios(config)
 };
 
 export const headerEnrichedAirtelTigoMtn = () => {
+    console.log("header called");
     const config = {
         method: 'GET',
         url: 'http://header.rancardmobility.com/decrypt',
         headers: {
             'Access-Control-Allow-Origin': '*',
-            "msisdn": "233261213507",
+            // "msisdn": "233261213507",
             // "IMSI":"somethinghere"
         }
     };
