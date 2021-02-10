@@ -82,9 +82,10 @@ class App extends React.Component {
 
     componentWillMount() {
 
-        this.setState({loading:true});
+
 
         const scripts = document.getElementsByTagName("script");
+        console.log(scripts);
         for(let i = 0; i<= scripts.length; i++){
             const script = scripts[i];
             if(script){
@@ -102,6 +103,7 @@ class App extends React.Component {
                     });
 
                     if(providerId !== undefined){
+                        this.setState({loading:true});
                         fetchWidgetData(providerId).then(({data})=> {
                            console.log("widget data", data.result);
                            this.setState({widgetData: data.result});
@@ -156,7 +158,7 @@ class App extends React.Component {
                     this.setState({msisdn: msisdn ,headerEnriched: true, smsc:smsc});
                     const {providerId, keyword} = this.state;
 
-                    if(msisdn && keyword == null){
+                    if(msisdn !== "" && keyword == null){
                         retrieveServices(providerId, msisdn, smsc, keyword).then(({data}) => {
                             console.log("retrieve service", data);
                             const {code, result, message} = data;
@@ -170,10 +172,12 @@ class App extends React.Component {
                             }
                         }).catch(err => {
                             this.setState({loading:false});
+                        }).finally(()=>{
+                            this.setState({loading:false});
                         })
                     }
                     //perform lookup to check if user is already subbed
-                    else if(msisdn && keyword){
+                    else if(msisdn!== "" && keyword){
                         widgetSubscriptionLookup(keyword, msisdn).then(({data}) => {
                             const {result, code} = data;
 
