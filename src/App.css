@@ -94,10 +94,15 @@
 }
 
 
-.wd__btn-subscribe:focus{
-    outline-color: rgba(47, 199, 0, 0.6);
-    outline-width: 10px;
-    background-color: rgba(47, 199, 0, 0.6);
+/*.wd__btn-subscribe{*/
+/*    outline-color: rgba(47, 199, 0, 0.6);*/
+/*    outline-width: 10px;*/
+/*    background-color: rgba(47, 199, 0, 0.6);*/
+/*}*/
+
+.wd__btn-subscribe:disabled{
+    background: rgba(24, 24, 24, 0.68);
+
 }
 
 

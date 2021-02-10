@@ -5,12 +5,13 @@ import MdRefresh from "react-ionicons/lib/MdRefresh"
 import MdArrowRoundForward from "react-ionicons/lib/MdArrowRoundForward"
 import MdArrowRoundBack from "react-ionicons/lib/MdArrowRoundBack"
 import {TimelineLite, Power4, } from "gsap/all";
-import {services} from "./dummyData";
 import swal from 'sweetalert';
 import PinInput from "react-pin-input";
 import Countdown from 'react-countdown';
 import {isMobile} from "react-device-detect"
-import Loader from "./components/Loader"
+import {Loader, UnknownProvider} from "./components"
+import CONSTANTS from "./constants"
+
 
 
 import {
@@ -19,8 +20,10 @@ import {
     subscribeToService,
     retrieveServices,
     fetchWidgetData,
-    headerEnrichedAirtelTigoMtn
+    headerEnrichedAirtelTigoMtn,
+    fetchSingleServiceDetails
 } from "./restService";
+import {close} from "sweetalert2";
 
 
 
@@ -53,10 +56,11 @@ class App extends React.Component {
             asr:"",
             widgetData:{},
             smsc:"",
-            page:"main",
+            page: CONSTANTS.PAGE_MAIN,
             pin:"",
             urlCallback:"",
-            adId:null
+            adId:null,
+            userSubscribedSingleService:false
         };
 
         this.widget = createRef();
@@ -78,8 +82,7 @@ class App extends React.Component {
 
     componentWillMount() {
 
-
-
+        this.setState({loading:true});
 
         const scripts = document.getElementsByTagName("script");
         for(let i = 0; i<= scripts.length; i++){
@@ -98,16 +101,29 @@ class App extends React.Component {
                         keyword: serviceKeyword
                     });
 
-
-
                     if(providerId !== undefined){
                         fetchWidgetData(providerId).then(({data})=> {
                            console.log("widget data", data.result);
-                           this.setState({widgetData: data.result})
+                           this.setState({widgetData: data.result});
+
+                            if(serviceKeyword !== null){
+                                fetchSingleServiceDetails(providerId, serviceKeyword).then(({data})=>{
+                                    const {result} =  data;
+                                    console.log(result);
+                                    if(result){
+                                        this.setState({singleServiceDetails:result})
+                                    }
+                                })
+                            }
+                        }).catch(error => {
+                            this.setState(prevState => {return {page:CONSTANTS.PAGE_INVALID_PROVIDER}})
+                        }).finally(()=>{
+                            this.setState({loading:false});
                         });
                     }
 
                 }
+
                 break
             }
         }
@@ -132,7 +148,6 @@ class App extends React.Component {
             .then(({data})=> {
                 console.log("header enriched:", data);
                 if(data){
-                    console.log("I entered here");
                     let {msisdn, smsc} = data;
 
                     // console.log("header enriched:",msisdn, smsc);
@@ -143,7 +158,7 @@ class App extends React.Component {
 
                     if(msisdn && keyword == null){
                         retrieveServices(providerId, msisdn, smsc, keyword).then(({data}) => {
-                            // console.log("retrieve service", data);
+                            console.log("retrieve service", data);
                             const {code, result, message} = data;
                             const {msisdn, serviceData, asr} = result;
                             console.log(serviceData);
@@ -156,17 +171,26 @@ class App extends React.Component {
                         }).catch(err => {
                             this.setState({loading:false});
                         })
-                    }else{
+                    }
+                    //perform lookup to check if user is already subbed
+                    else if(msisdn && keyword){
+                        widgetSubscriptionLookup(keyword, msisdn).then(({data}) => {
+                            const {result, code} = data;
+
+                            if(result && code === 200){
+                                const {asr, subscribed} = result;
+                                if(subscribed){
+                                    this.setState({asr:asr, userSubscribedSingleService:subscribed}, ()=>{
+
+                                    });
+                                }
+                            }
+                        })
+                    }
+                    else{
                         this.setState({headerEnriched: false});
-                        // console.log("no header enrichment")
                     }
 
-                    // if(keyword !== null){
-                    //     // this.subscribe({service:keyword}, msisdn, providerId, smsc);
-                    // }
-                    // else{
-                    //
-                    // }
                 }else{
                     this.setState({headerEnriched: false});
                     console.log("no header enrichment")
@@ -181,7 +205,6 @@ class App extends React.Component {
 
     closeWidget = (redirect = false) => {
         const {widgetData} = this.state;
-        // console.log("Closing widget", widgetData);
         this.setState({loading:false});
         // this.tl.reverse();
         // this.widget.current.style.visibility = "hidden";
@@ -210,30 +233,30 @@ class App extends React.Component {
     subscribe = (service, msisdn, providerAccountId, smsc) => {
         // console.log(service);
         const closeWd = this.closeWidget;
+        this.setState({loading:true});
         subscribeToService(service, msisdn, providerAccountId, smsc, this.state.adId).then(({data})=>{
 
 
             const {result, message, code} = data;
-            console.log("sub code",code);
+            // console.log("sub code",result);
 
             if(code < 400){
                 const {asr, status} = result;
 
                 this.setState({asr:asr});
 
-                // console.log("code 200", asr, status);
 
                 if(status !== "ALREADY_SUBSCRIBED"){
                     if(smsc === "AIRTELTIGO"){
-                        this.setState({loading:false, page:"pin"})
+                        this.setState({page:CONSTANTS.PAGE_ENTER_PIN})
                     }
 
                     else if(smsc === "MTNGH"){
 
-                        this.setState({loading:false, page:"waiting-verification", asr:msisdn});
+                        this.setState({page:CONSTANTS.PAGE_AWAITING_VERIFICATION, asr:msisdn});
 
 
-                        let sublookup = setInterval(function() {
+                        let sublookupDebounce = setInterval(function() {
 
                             widgetSubscriptionLookup(service.service, msisdn).then(({data})=>{
                                 // console.log("regular check data ", data);
@@ -243,7 +266,6 @@ class App extends React.Component {
                                     closeWd(true)
                                 }
                             });
-                            // console.log("checking for verification")
                         },  10 * 1000);
 
                         setTimeout(()=>{
@@ -252,16 +274,16 @@ class App extends React.Component {
                                 text: "An error occurred while subscribing to this service, please try again later!",
                                 icon: "error",
                             });
-                            clearInterval(sublookup);
-                            this.setState({page:"main"})
+                            clearInterval(sublookupDebounce);
+                            this.setState({page: CONSTANTS.PAGE_MAIN})
                         }, 30 * 1000)
                     }
                     else{
                         this.closeWidget(true);
                     }
                 }else{
+                    console.log("Already subbed, redirecting");
                     this.closeWidget(true)
-
                 }
 
             }else{
@@ -280,6 +302,8 @@ class App extends React.Component {
                 text: "An error occurred while subscribing to this service, please try again later!",
                 icon: "error",
             });
+        }).finally(()=>{
+            this.setState({loading:false})
         });
     };
 
@@ -308,39 +332,6 @@ class App extends React.Component {
         })
     };
 
-    onClear = () => {
-        this.setState({
-            value: ""
-        });
-        this.pin.clear();
-    };
-
-
-    moveNext = () =>{
-        const {index} = this.state;
-        if(index + 3 > services.length)
-            return;
-
-        this.setState(()=>{
-            return {
-                index:index + 3
-            }
-        })
-    };
-
-    moveBack = () => {
-        const {index} = this.state;
-        if(index - 3 < 0)
-            return;
-
-        this.setState(()=>{
-            return {
-                index:index - 3
-            }
-        })
-    };
-
-
 
 
 
@@ -355,7 +346,17 @@ class App extends React.Component {
         // const tl = new TimelineLite({paused:false});
         // tl.fromTo(this.container.current, 0.25, {opacity:0}, {opacity:1});
 
-        const {index, data, subscribeLoading,loading, selectedService, msisdnError, keyword, singleServiceDetails, page, pin} = this.state;
+        const {
+            index,
+            data,
+            loading,
+            selectedService,
+            msisdnError,
+            keyword,
+            singleServiceDetails,
+            page,
+            userSubscribedSingleService,
+            pin} = this.state;
 
        const WaitingVerificationPage = () => {
             return (
@@ -370,13 +371,15 @@ class App extends React.Component {
         };
 
 
+
+
         return(
 
 
             <div ref={this.container} className={"sdp_widget__container"}>
 
                 {
-                    page === "main" ?
+                    page === CONSTANTS.PAGE_MAIN ?
                         <div ref={this.widget} className={"enrichment_container"}>
 
                             <div style={{
@@ -393,7 +396,7 @@ class App extends React.Component {
 
 
                             {
-                                keyword !== null ?
+                                singleServiceDetails !== null ?
                                     <p ref={this.testFadeIn} className={"en_info"}>
                                         Get {singleServiceDetails && singleServiceDetails.service} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariff} / day` : "."}
                                     </p>:
@@ -419,7 +422,7 @@ class App extends React.Component {
                                 {
                                     data.length < 1 &&
                                     <div className={"sub_btn_container"}>
-                                        <button style={{width:"100% "}}  onClick={()=>{
+                                        <button style={{width:"100% "}} disabled={loading}  onClick={()=>{
                                             const {providerId, keyword, msisdn, smsc} = this.state;
                                             // console.log(providerId, keyword, msisdn);
 
@@ -427,14 +430,15 @@ class App extends React.Component {
                                                 this.setState({msisdnError:true})
                                             }else{
                                                 this.setState({loading:true});
-                                                if(keyword !== null){
-                                                    this.subscribe({service:keyword}, msisdn, providerId, smsc)
+                                                if(userSubscribedSingleService){
+                                                    this.closeWidget(true)
                                                 }else{
-                                                    getAllUserServices(providerId, msisdn)
+                                                    this.subscribe({service:keyword}, msisdn, providerId, smsc)
                                                 }
                                             }
 
-                                        }} className={"wd__btn-subscribe"}>Subscribe</button>
+                                        }} className={"wd__btn-subscribe"}>{userSubscribedSingleService ? "Continue": "Subscribe"}</button>
+
                                     </div>
                                 }
                             </div>
@@ -444,7 +448,7 @@ class App extends React.Component {
 
 
                             {
-                                this.state.loading ? <Loader/> : data.length > 0 ?
+                               data.length > 0 ?
                                     <div className={"services_container"}>
                                         <div style={{width:"100%"}}>
                                             {
@@ -460,18 +464,16 @@ class App extends React.Component {
                                                             </div>
 
                                                             <button
-                                                                disabled={item.status !== null}
+                                                                style={{backgroundColor:item.status !== null ? "green": "#181818"}}
                                                                 onClick={()=>{
-                                                                    let {msisdn, msisdnChange, providerId, smsc} = this.state;
+                                                                    let {msisdn, providerId, smsc} = this.state;
                                                                     if(msisdn !== ""){
-
                                                                         this.setState({selectedService:item, loading:true, msisdnError:false});
-
                                                                         this.subscribe(item, msisdn, providerId, smsc)
                                                                     }else{
                                                                         this.setState({msisdnError:true})
                                                                     }
-                                                                }} className={"wd__btn-service-item-btn"}>{item.status === null ? "Subscribe" : "Subscribed"}</button>
+                                                                }} className={"wd__btn-service-item-btn"}>{item.status === null ? "Subscribe" : "Enjoy Content"}</button>
                                                         </div>
                                                     )
                                                 })
@@ -512,6 +514,9 @@ class App extends React.Component {
                                     :
                                     null
                             }
+                            {
+                                loading && <Loader/>
+                            }
                             <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
                                 <img src={RANCARD_LOGO} style={{height:20, marginLeft:8}} alt="rancard"/>
                                 <div className={"rancard_image"}/>
@@ -519,7 +524,7 @@ class App extends React.Component {
                         </div>
                         :
 
-                        page === "pin" ?
+                        page === CONSTANTS.PAGE_ENTER_PIN ?
 
                             <div className={"enrichment_container"}>
                                 <div className={"pin-wrapper"}>
@@ -585,16 +590,16 @@ class App extends React.Component {
                                     }} className={"btn-confirm"}>Confirm</button>
                                     {this.state.loading && <Loader/>}
                                 </div>
-
                                 <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
-                                    <img src={"http://sandbox.rancardmobility.com/static/images/rancard_widget.svg"} style={{height:20, marginLeft:8}} alt="rancard"/>
+                                    <img src={RANCARD_LOGO} style={{height:20, marginLeft:8}} alt="rancard"/>
                                     <div className={"rancard_image"}/>
                                 </div>
                             </div>
 
-                             :
-                          page === "waiting-verification"?
-                              <WaitingVerificationPage/>: null
+                            :
+                            page === CONSTANTS.PAGE_AWAITING_VERIFICATION?
+                                <WaitingVerificationPage/>:
+                                page === CONSTANTS.PAGE_INVALID_PROVIDER ? <UnknownProvider/> : null
 
 
                 }
