@@ -198,6 +198,8 @@ class App extends React.Component {
             }).catch((e)=>{
                 console.log(e)
 
+        }).finally(()=>{
+            this.setState({loading:false})
         })
 
 
