@@ -104,6 +104,7 @@ class App extends React.Component {
 
                     if(providerId !== undefined){
                         this.setState({loading:true});
+
                         fetchWidgetData(providerId).then(({data})=> {
                            console.log("widget data", data.result);
                            this.setState({widgetData: data.result});
@@ -152,7 +153,7 @@ class App extends React.Component {
                 if(data){
                     let {msisdn, smsc} = data;
 
-                    // console.log("header enriched:",msisdn, smsc);
+                    console.log("header enriched:",msisdn, smsc);
 
 
                     this.setState({msisdn: msisdn ,headerEnriched: true, smsc:smsc});
