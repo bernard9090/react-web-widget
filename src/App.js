@@ -217,19 +217,26 @@ class App extends React.Component {
         // this.widget.current.style.visibility = "hidden";
         this.container.current.style.visibility = "hidden";
 
-        if(redirect){
-            if(this.state.urlCallback && this.state.urlCallback.length > 0){
-                window.location =`${this.state.urlCallback}?asr=${encodeURIComponent(this.state.asr)}`;
-            }else{
-                window.location =`${widgetData.frontendSyncUrl}?asr=${encodeURIComponent(this.state.asr)}`;
-            }
+        const urlParams = `asr=${encodeURIComponent(this.state.asr)}&adId=${this.state.adId}&keyword=${this.state.keyword}`;
+
+        let path;
+
+
+        if(this.state.urlCallback && this.state.urlCallback.length > 0){
+            path  =`${this.state.urlCallback}?${urlParams}`;
+        }else{
+            path = `${widgetData.frontendSyncUrl}?${urlParams}`;
         }
 
-        // swal({
-        //     title: "Subscription Successful",
-        //     text: `You have successfully subscribed to ${selectedService.service} @ ${selectedService.tariff}`,
-        //     icon: "success",
-        // });
+        console.log(path);
+
+        if(redirect){
+
+            window.location = path
+        }
+
+
+
     };
 
     onChange = pin => {
@@ -383,11 +390,11 @@ class App extends React.Component {
         return(
 
 
-            <div ref={this.container} className={"sdp_widget__container"}>
+            <div ref={this.container}  className={"sdp_widget__container"}>
 
                 {
                     page === CONSTANTS.PAGE_MAIN ?
-                        <div ref={this.widget} className={"enrichment_container"}>
+                        <div ref={this.widget}  className={"enrichment_container"}>
 
                             <div style={{
                                 width:"100%",
@@ -396,7 +403,7 @@ class App extends React.Component {
                                 alignItems:"center"}}
                             >
                                 <IosClose color={"red"}  fontSize={"40px"} onClick={()=>{
-                                    this.closeWidget(true)
+                                    // this.closeWidget(true)
                                 }}/>
                             </div>
 
@@ -430,6 +437,7 @@ class App extends React.Component {
                                     data.length < 1 &&
                                     <div className={"sub_btn_container"}>
                                         <button style={{width:"100% "}} disabled={loading}  onClick={()=>{
+
                                             const {providerId, keyword, msisdn, smsc} = this.state;
                                             // console.log(providerId, keyword, msisdn);
 
@@ -474,12 +482,15 @@ class App extends React.Component {
                                                                 style={{backgroundColor:item.status !== null ? "green": "#181818"}}
                                                                 onClick={()=>{
                                                                     let {msisdn, providerId, smsc} = this.state;
-                                                                    if(msisdn !== ""){
-                                                                        this.setState({selectedService:item, loading:true, msisdnError:false});
-                                                                        this.subscribe(item, msisdn, providerId, smsc)
-                                                                    }else{
-                                                                        this.setState({msisdnError:true})
-                                                                    }
+                                                                    this.setState((prevState => ({keyword: item.keyword})), ()=>{
+                                                                        if(msisdn !== ""){
+                                                                            this.setState({selectedService:item, loading:true, msisdnError:false});
+                                                                            this.subscribe(item, msisdn, providerId, smsc)
+                                                                        }else{
+                                                                            this.setState({msisdnError:true})
+                                                                        }
+                                                                    });
+
                                                                 }} className={"wd__btn-service-item-btn"}>{item.status === null ? "Subscribe" : "Enjoy Content"}</button>
                                                         </div>
                                                     )
@@ -612,6 +623,11 @@ class App extends React.Component {
                 }
 
 
+                <style>
+                    {
+                        `.enrichment_container{}`
+                    }
+                </style>
 
 
             </div>
