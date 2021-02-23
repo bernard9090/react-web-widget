@@ -85,29 +85,33 @@ class App extends React.Component {
 
 
         const scripts = document.getElementsByTagName("script");
-        console.log(scripts);
-        for(let i = 0; i<= scripts.length; i++){
-            const script = scripts[i];
+        for(const script of scripts){
             if(script){
                 let scriptSrc = script.src;
-                if(scriptSrc.includes("sdp-ds-widget.js")){
-                    let params = scriptSrc.split("#");
+                console.log(scriptSrc);
 
-                    let providerId = params[1];
-                    let serviceKeyword = params[2] ? params[2] : null;
+                const isSDPWidget =  scriptSrc.includes("sdp-ds-widget.js");
+                if(isSDPWidget){
 
-                    console.log("Script Params: ", providerId,serviceKeyword);
+
+
+                    let [_ ,providerId, serviceKeyword, adId] = scriptSrc.split("#");
+
+
+                    serviceKeyword = serviceKeyword && serviceKeyword !== "-" ? serviceKeyword : null;
+
+                    console.log(`Script Params:\nProviderID:${providerId}\nKeyword: ${serviceKeyword}\nAdId: ${adId}`);
                     this.setState( {
                         providerId:providerId,
                         keyword: serviceKeyword
                     });
 
                     if(providerId !== undefined){
-                        this.setState({loading:true});
+                        this.setState({loading:true, adId:adId});
 
                         fetchWidgetData(providerId).then(({data})=> {
-                           console.log("widget data", data.result);
-                           this.setState({widgetData: data.result});
+                            console.log("widget data", data.result);
+                            this.setState({widgetData: data.result});
 
                             if(serviceKeyword !== null){
                                 fetchSingleServiceDetails(providerId, serviceKeyword).then(({data})=>{
