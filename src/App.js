@@ -91,10 +91,8 @@ class App extends React.Component {
             if(script){
                 let scriptSrc = script.src;
                 if(scriptSrc.includes("sdp-ds-widget.js")){
-                    let params = scriptSrc.split("#");
+                    let [_, providerId, serviceKeyword ] = scriptSrc.split("#");
 
-                    let providerId = params[1];
-                    let serviceKeyword = params[2] ? params[2] : null;
 
                     console.log("Script Params: ", providerId,serviceKeyword);
                     this.setState( {
