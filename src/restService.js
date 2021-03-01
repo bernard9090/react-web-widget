@@ -31,7 +31,7 @@ export const headerEnrichedAirtelTigoMtn = () => {
         url: 'http://header.rancardmobility.com/decrypt',
         headers: {
             'Access-Control-Allow-Origin': '*',
-            "MSISDN": "233504662043",
+            // "MSISDN": "233243729047",
             // "IMSI":"somethinghere"
         }
     };
