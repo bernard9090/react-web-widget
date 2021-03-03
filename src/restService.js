@@ -31,7 +31,7 @@ export const headerEnrichedAirtelTigoMtn = () => {
         url: 'http://header.rancardmobility.com/decrypt',
         headers: {
             'Access-Control-Allow-Origin': '*',
-            "MSISDN": "233504662043",
+            // "MSISDN": "233504662043",
             // "IMSI":"somethinghere"
         }
     };
@@ -47,7 +47,7 @@ export const fetchUserServices = (providerId, serviceKeyword, msisdn) => {
 };
 
 
-export const subscribeToService = ({keyword, service,  shortcode}, msisdn, providerAccountId, smsc, adId=0) => {
+export const subscribeToService = ({keyword, service,  shortcode}, msisdn, providerAccountId, smsc, adId) => {
     console.log(service, msisdn, providerAccountId, shortcode, keyword);
     let service_ = keyword ? keyword : service;
     return axios({

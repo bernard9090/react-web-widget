@@ -23,13 +23,13 @@ import {
     headerEnrichedAirtelTigoMtn,
     fetchSingleServiceDetails
 } from "./restService";
-import {close} from "sweetalert2";
 
 
 
 const queryString = require('query-string');
 const PAGINATE_NUMBER = 3;
-const RANCARD_LOGO = "http://sandbox.rancardmobility.com/static/images/rancard_widget.svg"
+const RANCARD_LOGO = "http://sandbox.rancardmobility.com/static/images/rancard_widget.svg";
+const MTN_TIMEOUT = 60 * 1000;
 
 
 class App extends React.Component {
@@ -90,7 +90,7 @@ class App extends React.Component {
                 let scriptSrc = script.src;
                 console.log(scriptSrc);
 
-                const isSDPWidget =  scriptSrc.includes("sdp-ds-widget.js");
+                const isSDPWidget =  scriptSrc.includes("sdp-ds-widget-ad.js");
                 if(isSDPWidget){
 
 
@@ -277,10 +277,10 @@ class App extends React.Component {
                         let sublookupDebounce = setInterval(function() {
 
                             widgetSubscriptionLookup(service.service, msisdn).then(({data})=>{
-                                // console.log("regular check data ", data);
+                                console.log("regular check data ", data);
 
                                 if(data.result){
-                                    clearInterval(sublookup);
+                                    clearInterval(sublookupDebounce);
                                     closeWd(true)
                                 }
                             });
@@ -288,13 +288,16 @@ class App extends React.Component {
 
                         setTimeout(()=>{
                             swal({
-                                title: "Subscription Unsuccessful",
-                                text: "An error occurred while subscribing to this service, please try again later!",
-                                icon: "error",
+                                title: "Processing Subscription",
+                                text: "Your subscription is being finalized",
+                                icon: "info",
+                                confirmButtonText: "View Content"
+                            }).then(ok=>{
+                                this.closeWidget(true)
                             });
                             clearInterval(sublookupDebounce);
                             this.setState({page: CONSTANTS.PAGE_MAIN})
-                        }, 30 * 1000)
+                        }, MTN_TIMEOUT)
                     }
                     else{
                         this.closeWidget(true);
@@ -309,6 +312,7 @@ class App extends React.Component {
                     title: "Subscription Unsuccessful",
                     text: message,
                     icon: "error",
+                    confirmButtonText: "OK"
                 });
             }
             this.setState({loading:false});
@@ -318,14 +322,14 @@ class App extends React.Component {
             swal({
                 title: "Subscription Unsuccessful",
                 text: "An error occurred while subscribing to this service, please try again later!",
-                icon: "error",
-            });
+                icon: "error"});
         }).finally(()=>{
             this.setState({loading:false})
         });
     };
 
     getAllUserServices = (providerId, msisdn) =>{
+        this.setState({loading:true});
         retrieveServices(providerId, msisdn).then(({data}) => {
             // console.log("retrieve service", data);
             const {code, result, message} = data;
@@ -346,6 +350,8 @@ class App extends React.Component {
 
 
         }).catch(err => {
+            this.setState({loading:false});
+        }).finally(()=>{
             this.setState({loading:false});
         })
     };
@@ -381,7 +387,8 @@ class App extends React.Component {
                 <div className={"enrichment_container"}>
                     <div className={"pin-wrapper"}>
                         <h2>Awaiting subscription verification</h2>
-                        <p> <Countdown date={Date.now() + 30000}/></p>
+                        <p>Your subscription is being processed, do not close this page.</p>
+                        <p style={{fontSize:18, color:"red"}}> <Countdown date={Date.now() + MTN_TIMEOUT}/></p>
                     </div>
 
                 </div>

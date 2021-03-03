@@ -10,7 +10,7 @@ module.exports = {
     entry: './src/index.js',
     output: {
         path: path.resolve( __dirname, 'dist' ),
-        filename: 'sdp-ds-widget.js',
+        filename: 'sdp-ds-widget-ad.js',
         publicPath: '/',
     },
     devServer: {
