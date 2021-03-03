@@ -47,7 +47,7 @@ export const fetchUserServices = (providerId, serviceKeyword, msisdn) => {
 };
 
 
-export const subscribeToService = ({keyword, service,  shortcode}, msisdn, providerAccountId, smsc, adId=0) => {
+export const subscribeToService = ({keyword, service,  shortcode}, msisdn, providerAccountId, smsc, adId) => {
     console.log(service, msisdn, providerAccountId, shortcode, keyword);
     let service_ = keyword ? keyword : service;
     return axios({
