@@ -197,10 +197,10 @@ class App extends React.Component {
                         });
                         const attemptId = uuidv4();
                         this.setState({uuid:attemptId});
-                        sendSubscriptionAttempt(msisdn, null, keyword, providerId, smsc,attemptId).then((response) => {
-                            const {data} = response;
-                            console.log(data)
-                        }).catch(error => {})
+                        // sendSubscriptionAttempt(msisdn, null, keyword, providerId, smsc,attemptId).then((response) => {
+                        //     const {data} = response;
+                        //     console.log(data)
+                        // }).catch(error => {})
                     }
                     else{
                         this.setState({headerEnriched: false});
