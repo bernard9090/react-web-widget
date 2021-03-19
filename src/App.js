@@ -257,7 +257,7 @@ class App extends React.Component {
     subscribe = (service, msisdn, providerAccountId, smsc) => {
         const closeWd = this.closeWidget;
         this.setState({loading:true});
-        subscribeToService(service, msisdn, providerAccountId,this.state.uuid, smsc, this.state.adId).then(({data})=>{
+        subscribeToService(service, msisdn, providerAccountId,null, smsc, this.state.adId).then(({data})=>{
 
 
             const {result, message, code} = data;
