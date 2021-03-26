@@ -11,6 +11,7 @@ import Countdown from 'react-countdown';
 import {isMobile} from "react-device-detect"
 import {Loader, UnknownProvider} from "./components"
 import CONSTANTS from "./constants"
+import { v4 as uuidv4 } from 'uuid';
 
 
 
@@ -21,7 +22,8 @@ import {
     retrieveServices,
     fetchWidgetData,
     headerEnrichedAirtelTigoMtn,
-    fetchSingleServiceDetails
+    fetchSingleServiceDetails,
+    sendSubscriptionAttempt
 } from "./restService";
 
 
@@ -60,7 +62,8 @@ class App extends React.Component {
             pin:"",
             urlCallback:"",
             adId:null,
-            userSubscribedSingleService:false
+            userSubscribedSingleService:false,
+            uuid:""
         };
 
         this.widget = createRef();
@@ -92,14 +95,8 @@ class App extends React.Component {
 
                 const isSDPWidget =  scriptSrc.includes("sdp-ds-widget-ad.js");
                 if(isSDPWidget){
-
-
-
                     let [_ ,providerId, serviceKeyword, adId] = scriptSrc.split("#");
-
-
                     serviceKeyword = serviceKeyword && serviceKeyword !== "-" ? serviceKeyword : null;
-
                     console.log(`Script Params:\nProviderID:${providerId}\nKeyword: ${serviceKeyword}\nAdId: ${adId}`);
                     this.setState( {
                         providerId:providerId,
@@ -179,7 +176,9 @@ class App extends React.Component {
                             this.setState({loading:false});
                         }).finally(()=>{
                             this.setState({loading:false});
-                        })
+                        });
+
+
                     }
                     //perform lookup to check if user is already subbed
                     else if(msisdn!== "" && keyword){
@@ -194,7 +193,13 @@ class App extends React.Component {
                                     });
                                 }
                             }
-                        })
+                        });
+                        const attemptId = uuidv4();
+                        this.setState({uuid:attemptId});
+                        sendSubscriptionAttempt(msisdn, null, keyword, providerId, smsc,attemptId).then((response) => {
+                            const {data} = response;
+                            console.log(data)
+                        }).catch(error => {})
                     }
                     else{
                         this.setState({headerEnriched: false});
@@ -221,7 +226,7 @@ class App extends React.Component {
         // this.widget.current.style.visibility = "hidden";
         this.container.current.style.visibility = "hidden";
 
-        const urlParams = `asr=${encodeURIComponent(this.state.asr)}&adId=${this.state.adId}&keyword=${this.state.keyword}`;
+        const urlParams = `asr=${encodeURIComponent(this.state.msisdn)}&adId=${this.state.adId}&keyword=${this.state.keyword}`;
 
         let path;
 
@@ -249,10 +254,9 @@ class App extends React.Component {
     };
 
     subscribe = (service, msisdn, providerAccountId, smsc) => {
-        // console.log(service);
         const closeWd = this.closeWidget;
         this.setState({loading:true});
-        subscribeToService(service, msisdn, providerAccountId, smsc, this.state.adId).then(({data})=>{
+        subscribeToService(service, msisdn, providerAccountId,this.state.uuid, smsc, this.state.adId).then(({data})=>{
 
 
             const {result, message, code} = data;
@@ -423,7 +427,7 @@ class App extends React.Component {
                             {
                                 singleServiceDetails !== null ?
                                     <p ref={this.testFadeIn} className={"en_info"}>
-                                        Get {singleServiceDetails && singleServiceDetails.service} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariff} / day` : "."}
+                                        Get {singleServiceDetails && singleServiceDetails.service} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariff}` : "."}
                                     </p>:
                                     <p ref={this.testFadeIn} className={"en_info"}>
                                         Get Content directly to your mobile!
