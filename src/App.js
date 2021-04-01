@@ -428,7 +428,7 @@ class App extends React.Component {
                             {
                                 singleServiceDetails !== null ?
                                     <p ref={this.testFadeIn} className={"en_info"}>
-                                        Get {singleServiceDetails && singleServiceDetails.service} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariff}` : "."}
+                                        Get {singleServiceDetails && singleServiceDetails.service} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariff}/${singleServiceDetails.billingCycle}` : "."}
                                     </p>:
                                     <p ref={this.testFadeIn} className={"en_info"}>
                                         Get Content directly to your mobile!

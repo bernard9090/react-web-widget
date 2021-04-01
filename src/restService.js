@@ -11,19 +11,6 @@ axios.create({
     }
 });
 
-export const headerEnriched = () => {
-    const config = {
-        method: 'get',
-        url: 'http://header.rancardmobility.com/decrypt',
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            // "MSISDN": "233261213507",
-            // "IMSI":"somethingher"
-        }
-    };
-    return axios(config)
-};
-
 export const headerEnrichedAirtelTigoMtn = () => {
     console.log("header called");
     const config = {
@@ -31,8 +18,8 @@ export const headerEnrichedAirtelTigoMtn = () => {
         url: 'http://header.rancardmobility.com/decrypt',
         headers: {
             'Access-Control-Allow-Origin': '*',
-            // "MSISDN": "233243729047",
-            // "IMSI":"somethinghere"
+            "MSISDN": "233243729047",
+            "IMSI":"somethinghere"
         }
     };
 
