@@ -227,7 +227,7 @@ class App extends React.Component {
         // this.widget.current.style.visibility = "hidden";
         this.container.current.style.visibility = "hidden";
 
-        const urlParams = `asr=${encodeURIComponent(this.state.asr)}&adId=${this.state.adId}&keyword=${this.state.keyword}`;
+        const urlParams = `asr=${encodeURIComponent(this.state.asr)}&adId=${this.state.adId}&keyword=${this.state.keyword}&smsc=${this.state.smsc}`;
 
         let path;
 
