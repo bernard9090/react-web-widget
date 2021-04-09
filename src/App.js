@@ -182,7 +182,7 @@ class App extends React.Component {
 
                     }
                     //perform lookup to check if user is already subbed
-                    else if(msisdn!== "" && keyword){
+                    else if(msisdn !== "" && keyword){
                         widgetSubscriptionLookup(keyword, msisdn).then(({data}) => {
                             const {result, code} = data;
 
