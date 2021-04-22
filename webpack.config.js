@@ -1,5 +1,9 @@
 const HtmlWebPackPlugin = require( 'html-webpack-plugin' );
 const path = require( 'path' );
+const Dotenv = require('dotenv-webpack');
+
+
+
 module.exports = {
     performance: {
         hints: false,
@@ -42,6 +46,12 @@ module.exports = {
         new HtmlWebPackPlugin({
             template: path.resolve( __dirname, 'public/index.html' ),
             filename: 'index.html'
-        })
-    ]
+        }),
+        new Dotenv()
+    ],
+    externals:{
+        'Config':{
+            SALT:"this is the salt"
+        }
+    }
 };

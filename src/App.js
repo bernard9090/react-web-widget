@@ -12,6 +12,8 @@ import {isMobile} from "react-device-detect"
 import {Loader, UnknownProvider} from "./components"
 import CONSTANTS from "./constants"
 import { v4 as uuidv4 } from 'uuid';
+import Config from "Config"
+var CryptoJS = require("crypto-js");
 
 
 
@@ -149,6 +151,13 @@ class App extends React.Component {
 
 
     componentDidMount() {
+        const secret = process.env.REACT_APP_SECRET
+        var deviceID = MediaDeviceInfo.deviceId
+
+        console.log("config",secret, deviceID)
+        var ciphertext = CryptoJS.AES.encrypt('my message', secret).toString();
+
+        console.log(ciphertext)
         headerEnrichedAirtelTigoMtn()
             .then(({data})=> {
                 console.log("header enriched:", data);

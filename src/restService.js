@@ -15,11 +15,11 @@ export const headerEnrichedAirtelTigoMtn = () => {
     console.log("header called");
     const config = {
         method: 'GET',
-        url: 'http://header.rancardmobility.com/decrypt',
+        url: process.env.REACT_APP_HEADER,
         headers: {
             'Access-Control-Allow-Origin': '*',
-            "MSISDN": "233243729047",
-            "IMSI":"somethinghere"
+            // "MSISDN": "233243729047",
+            // "IMSI":"somethinghere"
         }
     };
 
@@ -95,7 +95,8 @@ export const confirmSubscriptionAIRTELTIGO = (otp, msisdn, providerAccountId, se
             otp,
             service:service,
             msisdn,
-            providerAccountId
+            providerAccountId,
+            
         }
     })
 };
