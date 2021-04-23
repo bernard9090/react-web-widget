@@ -595,7 +595,7 @@ class App extends React.Component {
                                         const {pin, msisdn, providerId, keyword} = this.state;
                                         if(pin !== "" && pin.length === 4){
                                             this.setState({loading:true});
-                                            confirmSubscriptionAIRTELTIGO(pin, msisdn, providerId, keyword).then(({data})=>{
+                                            confirmSubscriptionAIRTELTIGO(pin, msisdn, providerId, keyword, this.state.adId).then(({data})=>{
                                                 const {result, message, code} = data;
                                                 console.log(data);
                                                 const {asr} = result;

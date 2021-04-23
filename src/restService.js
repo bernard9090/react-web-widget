@@ -100,7 +100,7 @@ export const fetchSingleServiceDetails = (providerId, keyword) => {
 };
 
 
-export const confirmSubscriptionAIRTELTIGO = (otp, msisdn, providerAccountId, service) => {
+export const confirmSubscriptionAIRTELTIGO = (otp, msisdn, providerAccountId, service, advertisingId) => {
     return axios({
         method:"GET",
         url:`${BASE_URL}/api/v1/subscriber/widget/subscription/tigo/confirmation`,
@@ -108,7 +108,8 @@ export const confirmSubscriptionAIRTELTIGO = (otp, msisdn, providerAccountId, se
             otp,
             service:service,
             msisdn,
-            providerAccountId
+            providerAccountId,
+            advertisingId
         }
     })
 };
