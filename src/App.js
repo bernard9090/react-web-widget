@@ -490,16 +490,18 @@ class App extends React.Component {
 
                                             const {providerId, keyword, msisdn, smsc} = this.state;
                                             // console.log(providerId, keyword, msisdn);
-                                            if(!msisdn.match(/^\d{10}$/)){
-                                                swal({
-                                                    icon:"error",
-                                                    title:"Bad Number Format",
-                                                    text:"The number does not look legit, kindly check"
-                                                })
-                                                this.setState({msisdnError:true})
-                                                return;
-                                            }else{
-                                                this.setState({msisdnError:false})
+                                            if(!this.state.headerEnriched){
+                                                if(!msisdn.match(/^\d{10}$/)){
+                                                    swal({
+                                                        icon:"error",
+                                                        title:"Bad Number Format",
+                                                        text:"The number does not look legit, kindly check"
+                                                    })
+                                                    this.setState({msisdnError:true})
+                                                    return;
+                                                }else{
+                                                    this.setState({msisdnError:false})
+                                                }
                                             }
 
                                             if(msisdn.length < 10){

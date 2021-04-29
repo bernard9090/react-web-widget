@@ -4,7 +4,7 @@ import $ from "jquery"
 // const BASE_URL = "http://localhost:8990";
 //http://header.rancardmobility.com/decrypt
 // http://sandbox.rancardmobility.com/widget/decrypt
-const BASE_URL = "https://sdp4.rancardmobility.com";
+const BASE_URL = "https://sdp3.rancardmobility.com";
 axios.create({
     headers:{
         "Access-Control-Allow-Origin":"*"
