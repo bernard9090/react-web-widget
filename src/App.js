@@ -61,7 +61,7 @@ class App extends React.Component {
             page: CONSTANTS.PAGE_MAIN,
             pin:"",
             urlCallback:"",
-            adId:null,
+            adId:"",
             userSubscribedSingleService:false,
             uuid:""
         };
@@ -77,6 +77,7 @@ class App extends React.Component {
         this.subscribe = this.subscribe.bind(this);
         this.getAllUserServices = this.getAllUserServices.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.pinConfirmation = this.pinConfirmation.bind(this)
         this.tl = new TimelineLite();
 
     }
@@ -100,7 +101,8 @@ class App extends React.Component {
                     console.log(`Script Params:\nProviderID:${providerId}\nKeyword: ${serviceKeyword}\nAdId: ${adId}`);
                     this.setState( {
                         providerId:providerId,
-                        keyword: serviceKeyword
+                        keyword: serviceKeyword,
+                        adId:adId
                     });
 
                     if(providerId !== undefined){
@@ -332,6 +334,35 @@ class App extends React.Component {
         });
     };
 
+    pinConfirmation = () => {    
+        const {pin, msisdn, providerId, keyword, adId} = this.state
+        this.setState({loading:true});
+        confirmSubscriptionAIRTELTIGO(pin, msisdn, providerId, keyword, adId).then(({data})=>{
+            const {result, message, code} = data;
+            console.log(data);
+            const {asr} = result;
+            // this.setState({asr:asr});
+            if(code < 400){
+                this.closeWidget(true)
+            }else{
+                swal({
+                    icon:"error",
+                    title:"Pin verification failed",
+                    text:message
+                })
+            }
+        }).catch((response) => {
+            console.log("response log ",response);
+            swal({
+                icon:"error",
+                title:"Pin verification failed",
+                // text:response.message
+            })
+        }).finally(()=>{
+            this.setState({loading:false})
+        })
+    }
+
     getAllUserServices = (providerId, msisdn) =>{
         this.setState({loading:true});
         retrieveServices(providerId, msisdn).then(({data}) => {
@@ -384,6 +415,7 @@ class App extends React.Component {
             singleServiceDetails,
             page,
             userSubscribedSingleService,
+            adId,
             pin} = this.state;
 
        const WaitingVerificationPage = () => {
@@ -417,9 +449,9 @@ class App extends React.Component {
                                 justifyContent:"space-between",
                                 alignItems:"center"}}
                             >
-                                <IosClose color={"red"}  fontSize={"40px"} onClick={()=>{
+                                {/* <IosClose color={"red"}  fontSize={"40px"} onClick={()=>{
                                     // this.closeWidget(true)
-                                }}/>
+                                }}/> */}
                             </div>
 
 
@@ -438,23 +470,37 @@ class App extends React.Component {
                             <div className={"wd__input-label-container"}>
                                 <p className={"wd__input-label-desc"}>Please enter your phone number</p>
                                 <input
-                                    readOnly={true}
-                                    placeholder={"Phone Number"}
-                                    disabled={this.state.headerEnriched}  style={{
-                                    border: msisdnError ? "2px solid red" : null
-                                }}
+                                    maxLength={10}
+                                    placeholder={"Phone Number (eg. 0542199525)"}
+                                    disabled={this.state.headerEnriched} 
+                                    style={{ border: this.state.msisdnError ? "2px solid red" : null }}
 
                                     defaultValue={this.state.msisdn}
-                                    onChange={(e) => {this.setState({msisdn:e.target.value, msisdnChange:true, msisdnError:false})}}
+                                    onChange={(e) => {
+                                        const msisdn = e.target.value
+                                        this.setState({msisdn:msisdn, msisdnChange:true, msisdnError:false})
+                                    
+                                    }}
                                     className={"wd__msisdn-input"} type="tel"/>
 
                                 {
                                     data.length < 1 &&
                                     <div className={"sub_btn_container"}>
-                                        <button style={{width:"100% "}} disabled={loading}  onClick={()=>{
+                                        <button style={{width:"100% ", cursor:this.state.msisdn.length < 10  ? "not-allowed" :"pointer"}} disabled={this.state.msisdn.length < 10 && loading}  onClick={()=>{
 
                                             const {providerId, keyword, msisdn, smsc} = this.state;
                                             // console.log(providerId, keyword, msisdn);
+                                            if(!msisdn.match(/^\d{10}$/)){
+                                                swal({
+                                                    icon:"error",
+                                                    title:"Bad Number Format",
+                                                    text:"The number does not look legit, kindly check"
+                                                })
+                                                this.setState({msisdnError:true})
+                                                return;
+                                            }else{
+                                                this.setState({msisdnError:false})
+                                            }
 
                                             if(msisdn.length < 10){
                                                 this.setState({msisdnError:true})
@@ -586,7 +632,8 @@ class App extends React.Component {
                                                 }}
                                                 ref={p => (this.pin = p)}
                                                 type="numeric"
-                                                onChange={(pin) => this.onChange(pin)}
+                                                onChange={(pin) => this.onChange(pin)
+                                                }
                                             />
                                         </div>
                                     </div>
@@ -594,31 +641,7 @@ class App extends React.Component {
                                     <button disabled={this.pin === "" || loading} onClick={()=>{
                                         const {pin, msisdn, providerId, keyword} = this.state;
                                         if(pin !== "" && pin.length === 4){
-                                            this.setState({loading:true});
-                                            confirmSubscriptionAIRTELTIGO(pin, msisdn, providerId, keyword, this.state.adId).then(({data})=>{
-                                                const {result, message, code} = data;
-                                                console.log(data);
-                                                const {asr} = result;
-                                                // this.setState({asr:asr});
-                                                if(code < 400){
-                                                    this.closeWidget(true)
-                                                }else{
-                                                    swal({
-                                                        icon:"error",
-                                                        title:"Pin verification failed",
-                                                        text:message
-                                                    })
-                                                }
-                                            }).catch((response) => {
-                                                console.log("response log ",response);
-                                                swal({
-                                                    icon:"error",
-                                                    title:"Pin verification failed",
-                                                    // text:response.message
-                                                })
-                                            }).finally(()=>{
-                                                this.setState({loading:false})
-                                            })
+                                            this.pinConfirmation()
                                         }
                                     }} className={"btn-confirm"}>Confirm</button>
                                     {this.state.loading && <Loader/>}
