@@ -60,7 +60,6 @@ export const subscribeToService = ({keyword, service,  shortcode}, msisdn, provi
             providerAccountId,
             smsc,
             advertisingId:adId,
-            subscriptionAttemptId
         }
     })
 };

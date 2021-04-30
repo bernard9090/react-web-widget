@@ -85,9 +85,6 @@ class App extends React.Component {
 
 
     componentWillMount() {
-
-
-
         const scripts = document.getElementsByTagName("script");
         for(const script of scripts){
             if(script){
@@ -470,6 +467,7 @@ class App extends React.Component {
                             <div className={"wd__input-label-container"}>
                                 <p className={"wd__input-label-desc"}>Please enter your phone number</p>
                                 <input
+                                    readOnly={true}
                                     maxLength={10}
                                     placeholder={"Phone Number (eg. 0542199525)"}
                                     disabled={this.state.headerEnriched} 
@@ -490,19 +488,19 @@ class App extends React.Component {
 
                                             const {providerId, keyword, msisdn, smsc} = this.state;
                                             // console.log(providerId, keyword, msisdn);
-                                            if(!this.state.headerEnriched){
-                                                if(!msisdn.match(/^\d{10}$/)){
-                                                    swal({
-                                                        icon:"error",
-                                                        title:"Bad Number Format",
-                                                        text:"The number does not look legit, kindly check"
-                                                    })
-                                                    this.setState({msisdnError:true})
-                                                    return;
-                                                }else{
-                                                    this.setState({msisdnError:false})
-                                                }
-                                            }
+                                            // if(!this.state.headerEnriched){
+                                            //     if(!msisdn.match(/^\d{10}$/)){
+                                            //         swal({
+                                            //             icon:"error",
+                                            //             title:"Bad Number Format",
+                                            //             text:"The number does not look legit, kindly check"
+                                            //         })
+                                            //         this.setState({msisdnError:true})
+                                            //         return;
+                                            //     }else{
+                                            //         this.setState({msisdnError:false})
+                                            //     }
+                                            // }
 
                                             if(msisdn.length < 10){
                                                 this.setState({msisdnError:true})
