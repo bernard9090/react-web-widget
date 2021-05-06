@@ -153,6 +153,8 @@ class App extends React.Component {
     componentDidMount() {
         const secret = process.env.REACT_APP_SECRET
         var deviceID = MediaDeviceInfo.deviceId
+        const attemptId = uuidv4();
+        this.setState({uuid:attemptId});
 
         console.log("config",secret, deviceID)
         var ciphertext = CryptoJS.AES.encrypt('my message', secret).toString();
@@ -170,49 +172,54 @@ class App extends React.Component {
                     this.setState({msisdn: msisdn ,headerEnriched: true, smsc:smsc});
                     const {providerId, keyword} = this.state;
 
-                    if(msisdn !== "" && keyword == null){
-                        retrieveServices(providerId, msisdn, smsc, keyword).then(({data}) => {
-                            console.log("retrieve service", data);
-                            const {code, result, message} = data;
-                            const {msisdn, serviceData, asr} = result;
-                            console.log(serviceData);
-
-                            if(code === 200){
-                                this.setState({loading:false, data:serviceData, asr: asr});
-                            }else {
-                                this.setState({loading:false});
-                            }
-                        }).catch(err => {
-                            this.setState({loading:false});
-                        }).finally(()=>{
-                            this.setState({loading:false});
-                        });
-
-
-                    }
+                   
                     //perform lookup to check if user is already subbed
-                    else if(msisdn !== "" && keyword){
-                        widgetSubscriptionLookup(keyword, msisdn).then(({data}) => {
-                            const {result, code} = data;
-
-                            if(result && code === 200){
-                                const {asr, subscribed} = result;
-                                if(subscribed){
-                                    this.setState({asr:asr, userSubscribedSingleService:subscribed}, ()=>{
-
-                                    });
+                    if(msisdn !== ""){
+                        if(keyword){
+                            widgetSubscriptionLookup(keyword, msisdn).then(({data}) => {
+                                const {result, code} = data;
+    
+                                if(result && code === 200){
+                                    const {asr, subscribed} = result;
+                                    if(subscribed){
+                                        this.setState({asr:asr, userSubscribedSingleService:subscribed}, ()=>{
+    
+                                        });
+                                    }
                                 }
-                            }
-                        });
-                        const attemptId = uuidv4();
-                        this.setState({uuid:attemptId});
-                        sendSubscriptionAttempt(msisdn, null, keyword, providerId, smsc,attemptId).then((response) => {
+                            });
+                        }else{
+                            retrieveServices(providerId, msisdn, smsc, keyword).then(({data}) => {
+                                console.log("retrieve service", data);
+                                const {code, result, message} = data;
+                                const {msisdn, serviceData, asr} = result;
+                                console.log(serviceData);
+    
+                                if(code === 200){
+                                    this.setState({loading:false, data:serviceData, asr: asr});
+                                }else {
+                                    this.setState({loading:false});
+                                }
+                            }).catch(err => {
+                                this.setState({loading:false});
+                            }).finally(()=>{
+                                this.setState({loading:false});
+                            });
+    
+    
+                        }
+
+                        const attemptService = keyword !=  null ? keyword : "MULTI-SERVICE"
+                       
+                        
+                        sendSubscriptionAttempt(msisdn, null, attemptService, providerId, smsc,attemptId).then((response) => {
                             const {data} = response;
                             console.log(data)
                         }).catch(error => {})
                     }
                     else{
                         this.setState({headerEnriched: false});
+                        
                     }
 
                 }else{
