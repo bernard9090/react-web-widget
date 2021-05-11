@@ -87,19 +87,14 @@ class App extends React.Component {
 
 
     componentWillMount() {
-
-
-
         const scripts = document.getElementsByTagName("script");
-        console.log(scripts);
         for(let i = 0; i<= scripts.length; i++){
             const script = scripts[i];
             if(script){
                 let scriptSrc = script.src;
                 if(scriptSrc.includes("sdp-ds-widget.js")){
                     let [_, providerId, serviceKeyword ] = scriptSrc.split("#");
-
-
+                    serviceKeyword = serviceKeyword ? serviceKeyword : null
                     console.log("Script Params: ", providerId,serviceKeyword);
                     this.setState( {
                         providerId:providerId,
@@ -108,7 +103,6 @@ class App extends React.Component {
 
                     if(providerId !== undefined){
                         this.setState({loading:true});
-
                         fetchWidgetData(providerId).then(({data})=> {
                            console.log("widget data", data.result);
                            this.setState({widgetData: data.result});
@@ -151,39 +145,25 @@ class App extends React.Component {
 
 
     componentDidMount() {
-        const secret = process.env.REACT_APP_SECRET
-        var deviceID = MediaDeviceInfo.deviceId
         const attemptId = uuidv4();
         this.setState({uuid:attemptId});
-
-        console.log("config",secret, deviceID)
-        var ciphertext = CryptoJS.AES.encrypt('my message', secret).toString();
-
-        console.log(ciphertext)
         headerEnrichedAirtelTigoMtn()
             .then(({data})=> {
                 console.log("header enriched:", data);
                 if(data){
                     let {msisdn, smsc} = data;
-
                     console.log("header enriched:",msisdn, smsc);
-
-
                     this.setState({msisdn: msisdn ,headerEnriched: true, smsc:smsc});
-                    const {providerId, keyword} = this.state;
-
-                   
+                    const {providerId, keyword} = this.state;                   
                     //perform lookup to check if user is already subbed
                     if(msisdn !== ""){
                         if(keyword){
                             widgetSubscriptionLookup(keyword, msisdn).then(({data}) => {
-                                const {result, code} = data;
-    
+                                const {result, code} = data;    
                                 if(result && code === 200){
                                     const {asr, subscribed} = result;
                                     if(subscribed){
                                         this.setState({asr:asr, userSubscribedSingleService:subscribed}, ()=>{
-    
                                         });
                                     }
                                 }
@@ -205,13 +185,8 @@ class App extends React.Component {
                             }).finally(()=>{
                                 this.setState({loading:false});
                             });
-    
-    
                         }
-
                         const attemptService = keyword !=  null ? keyword : "MULTI-SERVICE"
-                       
-                        
                         sendSubscriptionAttempt(msisdn, null, attemptService, providerId, smsc,attemptId).then((response) => {
                             const {data} = response;
                             console.log(data)
@@ -219,9 +194,7 @@ class App extends React.Component {
                     }
                     else{
                         this.setState({headerEnriched: false});
-                        
                     }
-
                 }else{
                     this.setState({headerEnriched: false});
                     console.log("no header enrichment")
@@ -244,10 +217,7 @@ class App extends React.Component {
         this.container.current.style.visibility = "hidden";
 
         const urlParams = `asr=${encodeURIComponent(this.state.msisdn)}&adId=${this.state.adId}&keyword=${this.state.keyword}&smsc=${this.state.smsc}`;
-
         let path;
-
-
         if(this.state.urlCallback && this.state.urlCallback.length > 0){
             path  =`${this.state.urlCallback}?${urlParams}`;
         }else{
@@ -257,12 +227,8 @@ class App extends React.Component {
         console.log(path);
 
         if(redirect){
-
             window.location = path
         }
-
-
-
     };
 
     onChange = pin => {
@@ -444,7 +410,7 @@ class App extends React.Component {
                             {
                                 singleServiceDetails !== null ?
                                     <p ref={this.testFadeIn} className={"en_info"}>
-                                        Get {singleServiceDetails && singleServiceDetails.service} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariff}/${singleServiceDetails.billingCycle}` : "."}
+                                        Get {singleServiceDetails && singleServiceDetails.name} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariff}/${singleServiceDetails.billingCycle}` : "."}
                                     </p>:
                                     <p ref={this.testFadeIn} className={"en_info"}>
                                         Get Content directly to your mobile!
