@@ -1,0 +1,4 @@
+GET http://localhost:${PORT}/athena/v1/sessionMetaData/{{id}}
+
+###
+
