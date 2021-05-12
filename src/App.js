@@ -88,11 +88,13 @@ class App extends React.Component {
 
     componentWillMount() {
         const scripts = document.getElementsByTagName("script");
+        let widgetFound = false;
         for(let i = 0; i<= scripts.length; i++){
             const script = scripts[i];
             if(script){
                 let scriptSrc = script.src;
                 if(scriptSrc.includes("sdp-ds-widget.js")){
+                    widgetFound = true;
                     let [_, providerId, serviceKeyword ] = scriptSrc.split("#");
                     serviceKeyword = serviceKeyword ? serviceKeyword : null
                     console.log("Script Params: ", providerId,serviceKeyword);
@@ -124,9 +126,8 @@ class App extends React.Component {
                     }
 
                 }
-
-                break
             }
+           if (widgetFound) break
         }
 
 
