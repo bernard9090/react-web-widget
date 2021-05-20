@@ -240,7 +240,7 @@ class App extends React.Component {
     subscribe = (service, msisdn, providerAccountId, smsc) => {
         const closeWd = this.closeWidget;
         this.setState({loading:true});
-        subscribeToService(service, msisdn, providerAccountId,this.state.uuid, smsc, this.state.adId).then(({data})=>{
+        subscribeToService(service, msisdn, providerAccountId, this.state.uuid, smsc, this.state.adId).then(({data})=>{
 
 
             const {result, message, code} = data;
@@ -260,13 +260,9 @@ class App extends React.Component {
                     else if(smsc === "MTNGH"){
 
                         this.setState({page:CONSTANTS.PAGE_AWAITING_VERIFICATION, asr:msisdn});
-
-
                         let sublookupDebounce = setInterval(function() {
-
                             widgetSubscriptionLookup(service.service, msisdn).then(({data})=>{
                                 console.log("regular check data ", data);
-
                                 if(data.result){
                                     clearInterval(sublookupDebounce);
                                     closeWd(true)
@@ -345,14 +341,7 @@ class App extends React.Component {
     };
 
 
-
-
-
-
-
-
-
-
+    
     render() {
 
         // const tl = new TimelineLite({paused:false});
