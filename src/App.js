@@ -66,7 +66,9 @@ class App extends React.Component {
             urlCallback:"",
             adId:null,
             userSubscribedSingleService:false,
-            uuid:""
+            uuid:"",
+            allowedNetworks:[],
+            enableInput:false
         };
 
         this.widget = createRef();
@@ -112,17 +114,49 @@ class App extends React.Component {
                             if(serviceKeyword !== null){
                                 fetchSingleServiceDetails(providerId, serviceKeyword).then(({data})=>{
                                     const {result} =  data;
-                                    console.log(result);
+                                    console.log("widget data response",result);
+                                    const allowedNetworks = []
                                     if(result){
-                                        this.setState({singleServiceDetails:result})
+                                        const {mtnProductId, mtnServiceId, tigoProductId, vodaKeyword} = result
+                                        if(mtnProductId || mtnServiceId){
+                                            allowedNetworks.push({
+                                                name:"MTN Ghana",
+                                                key:"MTNGH",
+                                                id:mtnProductId || mtnServiceId
+                                            })
+                                        }
+                                        if(tigoProductId){
+                                            allowedNetworks.push({
+                                                name:"Airtel Tigo",
+                                                key:"AIRTELTIGO",
+                                                id:tigoProductId
+                                            })
+                                        }
+                                        if(vodaKeyword){
+                                            allowedNetworks.push({
+                                                name:"Vodafone Ghana",
+                                                key:"",
+                                                id:vodaKeyword
+                                            })
+                                        }
+                                        console.log("Allowed networks", allowedNetworks)
+
+                                        // not the right way but due to inconsistencies
+                                        headerEnrichedAirtelTigoMtn()
+                                            .then(({data})=> {
+                                                console.log("header enriched:", data);
+                                                if(data){
+                                                    let {msisdn, smsc} = data;
+                                                    const isSmscAllowed = allowedNetworks.filter(item => item.key === smsc).length  >  0
+                                                    this.setState({enableInput:isSmscAllowed})
+                                                }})
+                                        this.setState({singleServiceDetails:result, allowedNetworks:allowedNetworks})
                                     }
                                 })
                             }
                         }).catch(error => {
                             this.setState(prevState => {return {page:CONSTANTS.PAGE_INVALID_PROVIDER}})
-                        }).finally(()=>{
-                            this.setState({loading:false});
-                        });
+                        })
                     }
 
                 }
@@ -154,6 +188,7 @@ class App extends React.Component {
                 if(data){
                     let {msisdn, smsc} = data;
                     console.log("header enriched:",msisdn, smsc);
+
                     this.setState({msisdn: msisdn ,headerEnriched: true, smsc:smsc});
                     const {providerId, keyword} = this.state;                   
                     //perform lookup to check if user is already subbed
@@ -192,12 +227,15 @@ class App extends React.Component {
                             const {data} = response;
                             console.log(data)
                         }).catch(error => {})
+
+                        // make checks to see if the smsc is in the allowed networks
+
                     }
                     else{
-                        this.setState({headerEnriched: false});
+                        this.setState({headerEnriched: false,  enableInput:false});
                     }
                 }else{
-                    this.setState({headerEnriched: false});
+                    this.setState({headerEnriched: false, enableInput:false});
                     console.log("no header enrichment")
                 }
             }).catch((e)=>{
@@ -209,6 +247,8 @@ class App extends React.Component {
 
 
     }
+
+
 
     closeWidget = (redirect = false) => {
         const {widgetData} = this.state;
@@ -339,9 +379,11 @@ class App extends React.Component {
             this.setState({loading:false});
         })
     };
-
-
     
+
+
+
+
     render() {
 
         // const tl = new TimelineLite({paused:false});
@@ -384,17 +426,16 @@ class App extends React.Component {
                     page === CONSTANTS.PAGE_MAIN ?
                         <div ref={this.widget}  className={"enrichment_container"}>
 
-                            <div style={{
-                                width:"100%",
-                                display:"flex",
-                                justifyContent:"space-between",
-                                alignItems:"center"}}
-                            >
-                                <IosClose color={"red"}  fontSize={"40px"} onClick={()=>{
-                                    // this.closeWidget(true)
-                                }}/>
-                            </div>
-
+                            {/*<div style={{*/}
+                            {/*    width:"100%",*/}
+                            {/*    display:"flex",*/}
+                            {/*    justifyContent:"space-between",*/}
+                            {/*    alignItems:"center"}}*/}
+                            {/*>*/}
+                            {/*    <IosClose color={"red"}  fontSize={"40px"} onClick={()=>{*/}
+                            {/*        // this.closeWidget(true)*/}
+                            {/*    }}/>*/}
+                            {/*</div>*/}
 
 
                             {
@@ -411,15 +452,22 @@ class App extends React.Component {
                             <div className={"wd__input-label-container"}>
                                 <p className={"wd__input-label-desc"}>Please enter your phone number</p>
                                 <input
-                                    readOnly={true}
                                     placeholder={"Phone Number"}
-                                    disabled={this.state.headerEnriched}  style={{
+                                    disabled={this.state.enableInput}  style={{
                                     border: msisdnError ? "2px solid red" : null
                                 }}
 
                                     defaultValue={this.state.msisdn}
                                     onChange={(e) => {this.setState({msisdn:e.target.value, msisdnChange:true, msisdnError:false})}}
                                     className={"wd__msisdn-input"} type="tel"/>
+
+                                {
+                                    !this.state.enableInput && <select className={"network_select"} name="network_select" id="network_select">
+                                        {
+                                            this.state.allowedNetworks.map((item, index) => ( <option key={item.key} value={item.id}>{item.name}</option>))
+                                        }
+                                    </select>
+                                }
 
                                 {
                                     data.length < 1 &&
@@ -523,10 +571,10 @@ class App extends React.Component {
                             {
                                 loading && <Loader/>
                             }
-                            <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
-                                <img src={RANCARD_LOGO} style={{height:20, marginLeft:8}} alt="rancard"/>
-                                <div className={"rancard_image"}/>
-                            </div>
+                            {/*<div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by*/}
+                            {/*    <img src={RANCARD_LOGO} style={{height:20, marginLeft:8}} alt="rancard"/>*/}
+                            {/*    <div className={"rancard_image"}/>*/}
+                            {/*</div>*/}
                         </div>
                         :
 
@@ -596,10 +644,10 @@ class App extends React.Component {
                                     }} className={"btn-confirm"}>Confirm</button>
                                     {this.state.loading && <Loader/>}
                                 </div>
-                                <div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by
-                                    <img src={RANCARD_LOGO} style={{height:20, marginLeft:8}} alt="rancard"/>
-                                    <div className={"rancard_image"}/>
-                                </div>
+                                {/*<div className={"footer-rancard"} style={{marginTop:"4em", color:"gainsboro", textAlign:"center", display:"flex", alignItems:"center"}}>Powered by*/}
+                                {/*    <img src={RANCARD_LOGO} style={{height:20, marginLeft:8}} alt="rancard"/>*/}
+                                {/*    <div className={"rancard_image"}/>*/}
+                                {/*</div>*/}
                             </div>
 
                             :

@@ -4,6 +4,7 @@ import $ from "jquery"
 // const BASE_URL = "http://localhost:8990";
 //http://header.rancardmobility.com/decrypt
 // http://sandbox.rancardmobility.com/widget/decrypt
+// https://sdp4.rancardmobility.com
 const BASE_URL = "https://sdp4.rancardmobility.com";
 axios.create({
     headers:{
@@ -18,7 +19,7 @@ export const headerEnrichedAirtelTigoMtn = () => {
         url: process.env.REACT_APP_HEADER,
         headers: {
             'Access-Control-Allow-Origin': '*',
-            // "MSISDN": "233243729047",
+            "msisdn": "233243729047",
             // "IMSI":"somethinghere"
         }
     };
