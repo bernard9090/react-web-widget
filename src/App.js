@@ -331,7 +331,7 @@ class App extends React.Component {
         });
     };
 
-    pinConfirmation = () => {    
+    pinConfirmation = () => {
         const {pin, msisdn, providerId, keyword, adId} = this.state
         this.setState({loading:true});
         confirmSubscriptionAIRTELTIGO(pin, msisdn, providerId, keyword, adId).then(({data})=>{
@@ -420,8 +420,8 @@ class App extends React.Component {
                 <div className={"enrichment_container"}>
                     <div className={"pin-wrapper"}>
                         <h2>Awaiting subscription verification</h2>
-                        <p>Your subscription is being processed, do not close this page.</p>
-                        <p style={{fontSize:18, color:"red"}}> <Countdown date={Date.now() + MTN_TIMEOUT}/></p>
+                        <p style={{textAlign:"center", }}>Your subscription is being processed. If you didn't receive any USSD prompt, Please dial *175# and send 2 to confirm.</p>
+                        {/*<p style={{fontSize:18, color:"red"}}> <Countdown date={Date.now() + MTN_TIMEOUT}/></p>*/}
                     </div>
 
                 </div>
@@ -470,14 +470,14 @@ class App extends React.Component {
                                     readOnly={true}
                                     maxLength={10}
                                     placeholder={"Phone Number (eg. 0542199525)"}
-                                    disabled={this.state.headerEnriched} 
+                                    disabled={this.state.headerEnriched}
                                     style={{ border: this.state.msisdnError ? "2px solid red" : null }}
 
                                     defaultValue={this.state.msisdn}
                                     onChange={(e) => {
                                         const msisdn = e.target.value
                                         this.setState({msisdn:msisdn, msisdnChange:true, msisdnError:false})
-                                    
+
                                     }}
                                     className={"wd__msisdn-input"} type="tel"/>
 
