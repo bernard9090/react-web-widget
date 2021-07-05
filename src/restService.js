@@ -19,7 +19,7 @@ export const headerEnrichedAirtelTigoMtn = () => {
         url: process.env.REACT_APP_HEADER,
         headers: {
             'Access-Control-Allow-Origin': '*',
-            "msisdn": "233243729047",
+            // "msisdn": "233243729047",
             // "IMSI":"somethinghere"
         }
     };
@@ -128,5 +128,16 @@ export const sendSubscriptionAttempt = (msisdn,shortcode, service, providerAccou
             subscriptionAttemptId
 
         }
+    })
+}
+
+export const writeSubscription = (data) => {
+    return axios({
+        method : "POST",
+        url:`${BASE_URL}/api/v1/subscriber/thirdparty/subscription`,
+        headers:{
+
+        },
+        data
     })
 }

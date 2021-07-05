@@ -95,7 +95,7 @@ class App extends React.Component {
             const script = scripts[i];
             if(script){
                 let scriptSrc = script.src;
-                if(scriptSrc.includes("sdp-ds-widget.js")){
+                if(scriptSrc.includes("sdp-ds-widget-dropdown.js")){
                     widgetFound = true;
                     let [_, providerId, serviceKeyword ] = scriptSrc.split("#");
                     serviceKeyword = serviceKeyword ? serviceKeyword : null
@@ -135,7 +135,7 @@ class App extends React.Component {
                                         if(vodaKeyword){
                                             allowedNetworks.push({
                                                 name:"Vodafone Ghana",
-                                                key:"",
+                                                key:"OT",
                                                 id:vodaKeyword
                                             })
                                         }
@@ -143,12 +143,13 @@ class App extends React.Component {
 
                                         // not the right way but due to inconsistencies
                                         headerEnrichedAirtelTigoMtn()
-                                            .then(({data})=> {
-                                                console.log("header enriched:", data);
+                                            .then(({data})=> {                                    
                                                 if(data){
                                                     let {msisdn, smsc} = data;
-                                                    const isSmscAllowed = allowedNetworks.filter(item => item.key === smsc).length  >  0
-                                                    this.setState({enableInput:isSmscAllowed})
+                                                    const allowedNetwork = allowedNetworks.filter(item => item.key === smsc)
+                                                    const isSmscAllowed = allowedNetwork.length  >  0
+                                                    this.setState({enableInput:isSmscAllowed, smsc:allowedNetworks[0].key, allowedNetworks})
+                                                    console.log("will header enriched:", allowedNetworks, isSmscAllowed, smsc);
                                                 }})
                                         this.setState({singleServiceDetails:result, allowedNetworks:allowedNetworks})
                                     }
@@ -180,16 +181,15 @@ class App extends React.Component {
 
 
     componentDidMount() {
+        console.log(crypto)
         const attemptId = uuidv4();
         this.setState({uuid:attemptId});
         headerEnrichedAirtelTigoMtn()
             .then(({data})=> {
-                console.log("header enriched:", data);
                 if(data){
                     let {msisdn, smsc} = data;
-                    console.log("header enriched:",msisdn, smsc);
-
-                    this.setState({msisdn: msisdn ,headerEnriched: true, smsc:smsc});
+                   
+                    this.setState({msisdn: msisdn ,headerEnriched: true});
                     const {providerId, keyword} = this.state;                   
                     //perform lookup to check if user is already subbed
                     if(msisdn !== ""){
@@ -462,10 +462,14 @@ class App extends React.Component {
                                     className={"wd__msisdn-input"} type="tel"/>
 
                                 {
-                                    !this.state.enableInput && <select className={"network_select"} name="network_select" id="network_select">
+                                    !this.state.enableInput &&
+                                     <select className={"network_select"} name="network_select" id="network_select" onChange={(e) => {
+                                         this.setState({smsc:e.target.value})
+                                    }}>
                                         {
-                                            this.state.allowedNetworks.map((item, index) => ( <option key={item.key} value={item.id}>{item.name}</option>))
+                                            this.state.allowedNetworks.map((item, index) => ( <option key={item.key} value={item.key}>{item.name}</option>))
                                         }
+                                       
                                     </select>
                                 }
 
@@ -475,7 +479,6 @@ class App extends React.Component {
                                         <button style={{width:"100% "}} disabled={loading}  onClick={()=>{
 
                                             const {providerId, keyword, msisdn, smsc} = this.state;
-                                            // console.log(providerId, keyword, msisdn);
 
                                             if(msisdn.length < 10){
                                                 this.setState({msisdnError:true})
@@ -484,6 +487,7 @@ class App extends React.Component {
                                                 if(userSubscribedSingleService){
                                                     this.closeWidget(true)
                                                 }else{
+                                                    console.log(this.state)
                                                     this.subscribe({service:keyword}, msisdn, providerId, smsc)
                                                 }
                                             }
