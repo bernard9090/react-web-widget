@@ -61,7 +61,7 @@ class App extends React.Component {
             asr:"",
             widgetData:{},
             smsc:"",
-            page: CONSTANTS.PAGE_AWAITING_VERIFICATION,
+            page: CONSTANTS.PAGE_MAIN,
             pin:"",
             urlCallback:"",
             adId:null,
@@ -364,7 +364,7 @@ class App extends React.Component {
                 <div className={"enrichment_container"}>
                     <div className={"pin-wrapper"}>
                         <h2>Awaiting subscription verification</h2>
-                        <p style={{textAlign:"center", }}>Your subscription is being processed. If you didn't receive any USSD prompt, Please dial *175# and send 2 to confirm.</p>
+                        <p>Your subscription is being processed, do not close this page.</p>
                         {/* <p style={{fontSize:18, color:"red"}}> <Countdown date={Date.now() + MTN_TIMEOUT}/></p> */}
                     </div>
 

@@ -364,7 +364,7 @@ class App extends React.Component {
                 <div className={"enrichment_container"}>
                     <div className={"pin-wrapper"}>
                         <h2>Awaiting subscription verification</h2>
-                        <p style={{textAlign:"center", }}>Your subscription is being processed. If you didn't receive any USSD prompt, Please dial *175# and send 2 to confirm.</p>
+                        <p style={{}}>Your subscription is being processed. If you didn't receive any USSD prompt, Please dial *175# and send 2 to confirm.</p>
                         {/* <p style={{fontSize:18, color:"red"}}> <Countdown date={Date.now() + MTN_TIMEOUT}/></p> */}
                     </div>
 
