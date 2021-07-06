@@ -61,7 +61,7 @@ class App extends React.Component {
             asr:"",
             widgetData:{},
             smsc:"",
-            page: CONSTANTS.PAGE_AWAITING_VERIFICATION,
+            page: CONSTANTS.PAGE_MAIN,
             pin:"",
             urlCallback:"",
             adId:null,
