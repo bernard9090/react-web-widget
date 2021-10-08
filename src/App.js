@@ -114,7 +114,9 @@ class App extends React.Component {
                                     const {result} =  data;
                                     console.log(result);
                                     if(result){
-                                        this.setState({singleServiceDetails:result})
+                                        const {backgroundUrl, serviceData} = result
+                                        serviceData.backgroundUrl = backgroundUrl
+                                        this.setState({singleServiceDetails:serviceData})
                                     }
                                 })
                             }
@@ -124,10 +126,9 @@ class App extends React.Component {
                             this.setState({loading:false});
                         });
                     }
-
+                    break
                 }
-
-                break
+               
             }
         }
 
@@ -456,7 +457,7 @@ class App extends React.Component {
                             {
                                 singleServiceDetails !== null ?
                                     <p ref={this.testFadeIn} className={"en_info"}>
-                                        Get {singleServiceDetails && singleServiceDetails.name} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails && singleServiceDetails.tariffs && singleServiceDetails.tariffs[`${this.state.smsc}`]}/${singleServiceDetails.billingCycle}` : "."}
+                                        Get {singleServiceDetails && singleServiceDetails.name} content directly to your phone {singleServiceDetails && singleServiceDetails.tariff ? `@ Ghs ${singleServiceDetails.tariff}/${singleServiceDetails.billingCycle}` : "."}
                                     </p>:
                                     <p ref={this.testFadeIn} className={"en_info"}>
                                         Get Content directly to your mobile!
