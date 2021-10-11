@@ -113,10 +113,8 @@ class App extends React.Component {
                                 fetchSingleServiceDetails(providerId, serviceKeyword).then(({data})=>{
                                     const {result} =  data;
                                     console.log(result);
-                                    if(result){
-                                        const {backgroundUrl, serviceData} = result
-                                        serviceData.backgroundUrl = backgroundUrl
-                                        this.setState({singleServiceDetails:serviceData})
+                                    if(result){                
+                                        this.setState({singleServiceDetails:result})
                                     }
                                 })
                             }
