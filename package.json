@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.2",
     "css-loader": "^3.5.3",
     "file-loader": "^6.0.0",
     "gsap": "^3.3.4",
